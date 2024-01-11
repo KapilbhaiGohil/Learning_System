@@ -1,0 +1,153 @@
+@import "globle.scss";
+
+//for the auth container
+.auth{
+    display: flex;
+    justify-content: center;
+    padding-top: 5%;
+    .auth-outer{
+        width: fit-content;
+        box-shadow: $lightshadow;
+        background: white;
+        padding: 2rem;
+        border-radius: 0.4rem;
+        width: 28rem;
+        .auth-logo{
+            margin-bottom: 1rem;
+        }
+        .auth-content{
+            a{
+                color: $link;
+            }
+            .auth-buttons{
+                display: flex;
+                justify-content: space-between;
+                .back-button{
+                    background: rgb(159, 148, 148);
+                }
+            }
+            .auth-links{
+                display: flex;
+                justify-content: space-between;
+                p{
+                    margin-top: 1rem;
+                    font-size: 0.8rem;
+                }
+            }
+        }
+    }
+}
+
+
+
+// for the input container css
+.input-container{
+    margin-top: 1rem;
+    // width: 24rem;
+    .imginut-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-bottom: 1px solid black;
+        padding: 0.6rem 0;    
+        &:focus-within{
+            // box-shadow: 0 0 5px $outline;
+            border-color: $outline;
+        }
+        .img-outer{
+            img{
+                width: 0.9rem;
+            }
+        }   
+        .input-outer{
+            width: 100%;
+            input{
+                outline: none;
+                border:none;
+                font-size: 0.9rem;
+                padding: rem;
+                padding: 0 0.3rem;
+                width: 100%;
+                background:transparent;
+            }
+        }
+    }
+    
+    .error-msg{
+        display: none;
+    }
+}
+
+//for the error input
+.err-input-container{
+    .imginut-container{
+        border-color: $err;
+        &:focus-within{
+            // box-shadow: 0 0 5px $outline;
+            border-color: $err;
+        }
+    }
+    input{
+        color:$err;
+    }
+    .error-msg{
+        display: block;
+        p{
+            margin-top: 0.3rem;
+            color: $err;
+            font-size: 0.8rem;
+        }
+    }
+}
+
+//for the button css
+.button-outer{
+    display: flex;
+    justify-content: center;
+    min-width: 8rem;
+    max-width: 100%;
+    img{
+
+    }
+    button{
+        width: 100%;
+        background: none;
+        border: none;
+        outline: none;
+        padding:0.4rem;
+        border-radius: 0.3rem;
+        margin-top: 1rem;
+        background-color: $outline;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: white;
+        position: relative;
+
+    }
+}
+
+//for the otpinput css
+.otp-outer{
+    .input-fields{
+        display: flex;
+        justify-content: space-between;
+        input{
+            background: #aed5ed;
+            font-weight: bold;
+            color: black;
+            box-shadow: 0px 0px 2px 0px #453e3e;
+            width: 2.5rem;
+            height: 2.5rem;
+            outline: none;
+            font-size: 1rem;
+            text-align: center;
+            border-radius: 0.4rem;
+            border: 1px solid black;
+            margin-top: 1rem;
+            &:focus{
+                background: $outline;
+                border: 1px solid black;
+            }
+        }
+    }
+}

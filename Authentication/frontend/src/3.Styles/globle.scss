@@ -1,0 +1,21 @@
+$background: linear-gradient(to right, #e5d3d3, #caddc7);
+$outline:#2693d5;
+$err:#f51717;
+$link:rgb(0, 140, 255);
+$lightshadow :0 2px 6px rgba(0, 0, 0, 0.2);
+*{
+    font-family: "Segoe UI","Helvetica Neue","Lucida Grande","Roboto","Ebrima","Nirmala UI","Gadugi","Segoe Xbox Symbol","Segoe UI Symbol","Meiryo UI","Khmer UI","Tunga","Lao UI","Raavi","Iskoola Pota","Latha","Leelawadee","Microsoft YaHei UI","Microsoft JhengHei UI","Malgun Gothic","Estrangelo Edessa","Microsoft Himalaya","Microsoft New Tai Lue","Microsoft PhagsPa","Microsoft Tai Le","Microsoft Yi Baiti","Mongolian Baiti","MV Boli","Myanmar Text","Cambria Math",sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body{
+    min-height: 100vh;
+    background: $background;
+}
+a{
+    text-decoration: none;
+    &:hover{
+        text-decoration: underline;
+    }
+}

@@ -1,0 +1,43 @@
+@import "./globle.scss";
+nav{
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 2rem;
+  background: white;
+  .nav-logo{
+    img{
+      width: 200px;
+    }
+  }
+  .nav-links{
+    ul{
+      display: flex;
+      list-style: none;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      li{
+        padding: 0.5rem;
+        cursor: pointer;
+        border-radius: 0.4rem;
+        margin-left: 1rem ;
+        transition: all 0.2s ease-in;
+        font-weight: bold;
+
+        &:hover{
+          //box-shadow:0px 0px 10px red;
+          background: black;
+          color: white;
+       
+        }
+      }
+    }
+  }
+}
+.selected{
+  //box-shadow:0px 0px 10px red;
+  background: black;
+  color: white;
+}
