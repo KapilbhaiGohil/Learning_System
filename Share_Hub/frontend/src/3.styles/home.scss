@@ -1,0 +1,68 @@
+@import "./globle.scss";
+
+// style for the topic component
+.topic-outer {
+    display: flex;
+    flex-direction: column;
+    width: 20rem;
+    height: 20rem;
+    background-color: $topicBackground;
+    border-radius: 1rem;
+    // box-shadow: 0px 0px 4px 1px black;
+    color: white;
+    cursor: pointer;
+    &:hover{
+        box-shadow: 0 1px 9px 3px rgb(60 64 67 / 30%), 0 2px 6px 2px rgb(60 64 67 / 15%);
+    }
+    .topic-background {
+        background-image: url('https://th.bing.com/th/id/R.2436bfd57f8da9d3352be6d9c69f7d0d?rik=9ZCsDkOmNhWhyQ&riu=http%3a%2f%2fwallpaperheart.com%2fwp-content%2fuploads%2f2018%2f04%2fbest-scenery-wallpaper-scenery-images.jpg&ehk=QhEgBXlBIdu4NBBKeTvxOQncAMHrLokkC8ustgaeB9c%3d&risl=&pid=ImgRaw&r=0');
+        background-size: cover;
+        height: 100%;
+        border-radius: inherit;
+        margin: 1rem;
+        .topic-options {}
+    }
+
+    .topic-info {
+        margin: 1rem;
+
+        .topic-detail {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+
+            .photo {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                background: transparent;
+                width: 25%;
+                img {
+                    width: 3rem;
+                    height: 3rem;
+                    border-radius: 3rem;
+                }
+            }
+
+            .desc {
+                max-width: 60%;
+                
+                p {
+                    text-align: justify;
+                    font-size: 0.8rem;
+                }
+            }
+        }
+
+        .topic-footer {
+            div{
+                font-size: 0.8rem;
+                color: cyan;
+                float: right;
+            }
+            margin-top: 0.3rem
+        }
+    }
+
+}
