@@ -4,7 +4,7 @@ import '../3.styles/home.scss'
 export default function Home(){
     return (
         <>
-        <div style={{margin:"4rem"}}>
+        <div style={{margin:"2rem 5rem"}}>
             <Topic></Topic>
         </div>
         </>
