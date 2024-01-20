@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-local_db_uri = process.env.LOCALE_DB_URI
+local_db_uri = process.env.AUTH_LOCAL_DB_URI
 
 const connectDB = async(isLocal)=>{
     if(isLocal){

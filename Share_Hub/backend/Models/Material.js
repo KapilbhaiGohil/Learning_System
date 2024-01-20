@@ -1,21 +1,22 @@
-const mongoose = require("mongoose")
-
+import mongoose from "mongoose";
 const materialSchema = new mongoose.Schema(
     {
-        name:{tyep:String,required:true,trim:trusted},
+        name:{type:String,required:true,trim:true},
         creator:{type:mongoose.Schema.Types.ObjectId,required:true,ref:'User'},
         backImg:{type:String},
-        desc:{type:String,trim:true}
+        desc:{type:String,trim:true},
+        driveFolderId:{type:String,required:true}
     }
 )
-const Material = mongoose.model('Material',materialSchema)
+export const Material = mongoose.model('Material',materialSchema)
 
 const topicSchema = new mongoose.Schema(
     {
         name:{type:String,required:true,trim:true},
+        driveFolderId:{type:String,required:true}
     }
 )
-const Topic = mongoose.model('Topic',topicSchema);
+export const Topic = mongoose.model('Topic',topicSchema);
 
 const infoSchema = new mongoose.Schema(
     {
@@ -25,7 +26,7 @@ const infoSchema = new mongoose.Schema(
         attachment:{type:String}
     }
 )
-const Info = mongoose.model('Info',infoSchema);
+export const Info = mongoose.model('Info',infoSchema);
 
 const assignmentSchema = new mongoose.Schema(
     {
@@ -37,6 +38,4 @@ const assignmentSchema = new mongoose.Schema(
         dueDate:{type:Date}
     }
 )
-const Assignment = mognoose.model('Assignment',assignmentSchema);
-
-module.exports = {Material,Topic,Info,Assignment};
+export const Assignment = mongoose.model('Assignment',assignmentSchema);

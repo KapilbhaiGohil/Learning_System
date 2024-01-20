@@ -14,6 +14,6 @@ app.use(cookieParser());
 app.use('/auth',authRouter);
 app.use('/user',userRouter)
 
-app.listen(process.env.PORT,()=>{
-    console.log("server started at port "+process.env.PORT);
+app.listen(process.env.AUTH_PORT,()=>{
+    console.log("server started at port "+process.env.AUTH_PORT);
 });

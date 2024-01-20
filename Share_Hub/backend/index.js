@@ -1,16 +1,17 @@
 import express from "express";
-import  dotenv from "dotenv";
 import  {connectDBs}  from "./Database/conn.js";
 import cookieParser from 'cookie-parser';
 import {MaterialRouter} from './Routers/materialRouter.js'
-dotenv.config({path:"../../config.env"})
+import config from "./config.js";
 const app = express();
-const dbs = connectDBs();
+await connectDBs();
+import fileRouter from './Routers/fileRouter.js'
 //cookie parser
 app.use(cookieParser());
 app.use('/material',MaterialRouter);
+app.use('/file',fileRouter)
 //Routers are configured here
 
-app.listen(process.env.PORT_SHAREHUB,()=>{
-    console.log("server started at port "+process.env.PORT_SHAREHUB);
+app.listen(config.shareHubPort,()=>{
+    console.log("server started at port "+config.shareHubPort);
 });
