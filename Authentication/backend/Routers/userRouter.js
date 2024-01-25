@@ -9,7 +9,7 @@ const jsonwebtoken = require('jsonwebtoken')
 userRouter.post('/getUserByCookie',async(req,res)=>{
     const {token} = req.body
     if(!token){
-        return res.status(401).send({ msg: "Unauthorized request - Missing Token" });
+        return res.status(401).send({ msg: "Unauthorized request - Missing Token",field:'token'});
     }
     try{
         const obj = await jsonwebtoken.verify(token,process.env.JSONKEY)

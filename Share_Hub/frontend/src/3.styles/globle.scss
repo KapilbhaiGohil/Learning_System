@@ -1,36 +1,78 @@
 $cardBack : #b6e2e7;
 $navback :  #d2ccc4;
+$blueColor:#3574d6;
+$borderColor:#5a5a5a;
+$fontColor:#dfdfdf;
+$bodyBack:#0d1117;
 *{
     font-family: "Segoe UI","Helvetica Neue","Lucida Grande","Roboto","Ebrima","Nirmala UI","Gadugi","Segoe Xbox Symbol","Segoe UI Symbol","Meiryo UI","Khmer UI","Tunga","Lao UI","Raavi","Iskoola Pota","Latha","Leelawadee","Microsoft YaHei UI","Microsoft JhengHei UI","Malgun Gothic","Estrangelo Edessa","Microsoft Himalaya","Microsoft New Tai Lue","Microsoft PhagsPa","Microsoft Tai Le","Microsoft Yi Baiti","Mongolian Baiti","MV Boli","Myanmar Text","Cambria Math",sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
+body{
+    background: $bodyBack;
+}
 ul{
     list-style: none;
 }
+//default button style
+button{
+    border-radius: 0.3rem;
+    outline: none;
+    border: none;
+    background: $blueColor;
+    float: right;
+    color: $fontColor;
+    letter-spacing: 1px;
+    cursor: pointer;
+    width: 8rem;
+    height: 2rem;
+}
+.close-btn{
+    background: $borderColor;
+}
+//default input style
+input{
+    font-size: 1rem;
+    background: inherit;
+    outline: none;
+    border-radius: 0.3rem;
+    color:$fontColor;
+    width: 100%;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid  $borderColor;
+    &:focus{
+        outline: 2px solid $blueColor;
+        border-color: transparent;
+    }
+}
 nav{
-    background: $navback;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     padding: 1rem 2rem;
-
+    background: black;
+    color: $fontColor;
     .nav-div{
         display: inline flex;
+        background: inherit;
         .nav-heading{
             margin-left: 1rem;
             font-size: 1.3rem;
+            background: inherit;
             font-weight: bold;
         }
         .nav-logo{
             padding-right: 1rem;
             display: flex;
-            border-right: 2px solid black;
+            border-right: 2px solid $fontColor;
+            background: inherit;
             img{
                 height: 24.55px;
                 width: 200px;
+                background: inherit;
             }
         }
         div{
@@ -38,15 +80,93 @@ nav{
         }
     }
     .nav-links{
+        background: inherit;
         ul{
+            background: inherit;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: row;
             li{
+                background: inherit;
                 padding: 0rem 1rem;
                 cursor: pointer;
             }
         }
+    }
+}
+//desing for the createMaterial component
+.create{
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    backdrop-filter: brightness(0.5);
+
+    .create-outer{
+        position: fixed;
+        left: 33vw;
+        right: 33vw;
+        top: 20vh;
+        padding: 2rem;
+        border-radius: 0.4rem ;
+        background: #dadada;
+        >div{
+            margin-top: 1rem;
+        }
+        .create-buttons{
+            float: right;
+            button{
+                border: none;
+                outline: none;
+                cursor: pointer;
+                background: inherit;
+                padding: 0.3rem 1.3rem;
+                margin-left: 1rem;
+                border-radius: 0.3rem;
+            }
+        }
+    }
+
+}
+
+//desing for the input
+.material-input{
+    position: relative;
+    border-bottom: 2px solid black;
+    padding: 1rem 1rem;
+    background: rgb(241,243,244);
+    border-radius: 0.4rem 0.4rem 0 0;
+
+    .material-input-label{
+        position: absolute;
+        top: 1rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        color: rgb(32,33,36);
+        will-change: top,color,font-size,opacity;
+
+    }
+    .material-input-input{
+
+    }
+    input{
+        border: none;
+        width: 100%;
+        outline: none;
+        background-color: inherit;
+        position: relative;
+        z-index: 1;
+        font-size: 0.9rem;
+        bottom: -6px;
+    }
+    &:focus-within{
+        .material-input-label{
+            top: 0.2rem;
+            color: rgb(25,103,210);
+            font-size: 0.8rem;
+        }
+        border-bottom-color: rgb(25,103,210);
     }
 }

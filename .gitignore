@@ -25,4 +25,4 @@ yarn-error.log*
 
 .idea/
 *.env
-Share_Hub/backend/Utils/apikeys.json
+Share_Hub/backend/Utils/firebaseConfig.js

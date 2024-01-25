@@ -32,7 +32,9 @@ export default function Login(){
             body:JSON.stringify({email:email,password:password}),
         });
         if(res.ok){
-            navigate("/home");
+            // navigate("/home");
+            //temp solution
+            window.location.replace('http://localhost:3000/home');
         }else{
             const data = await res.json();
             setError({msg:data.msg,field:data.field})
