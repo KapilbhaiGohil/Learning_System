@@ -1,6 +1,7 @@
+
 export const getMaterials = async()=>{
     try{
-        const res = await fetch('material/get',{
+        const res = await fetch('/material/get',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
@@ -14,7 +15,7 @@ export const getMaterials = async()=>{
 }
 export const createMaterial=async (bodyObj)=>{
     try{
-        const res = await fetch('material/create',{
+        const res = await fetch('/material/create',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
@@ -29,7 +30,7 @@ export const createMaterial=async (bodyObj)=>{
 }
 export const likeMaterial=async (materialId)=>{
     try{
-        const res = await fetch('material/like',{
+        const res = await fetch('/material/like',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
@@ -44,7 +45,7 @@ export const likeMaterial=async (materialId)=>{
 }
 export const removeLikeMaterial=async (materialId)=>{
     try{
-        const res = await fetch('material/removeLike',{
+        const res = await fetch('/material/removeLike',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"

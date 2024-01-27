@@ -14,18 +14,20 @@ import {
 import {createMaterial, likeMaterial, removeLikeMaterial} from "./fetchRequest";
 import {useContext, useEffect, useRef, useState} from "react";
 import {Context} from "../../Context";
+import {useNavigate} from "react-router-dom";
 
-export function Material({commentOnclick,updateMaterial,index,material}){
+export function MaterialCard({commentOnclick,updateMaterial,index,material}){
     const {activeUser} = useContext(Context);
     const [like,setLike]=useState(false);
+    const navigate = useNavigate();
     useEffect(() => {
         for (let i = 0; i < material.likes.length; i++) {
-            if(material.likes[i]===activeUser._id.toString()){
+            if(activeUser && activeUser._id && material.likes[i]===activeUser._id.toString()){
                 setLike(true);
                 break;
             }
         }
-    }, []);
+    }, [activeUser]);
     const likeFunction=async (e) => {
         let res,data;
         if (like){
@@ -38,27 +40,30 @@ export function Material({commentOnclick,updateMaterial,index,material}){
             setLike(!like);
         }
     }
+    const materialClick=(e)=>{
+        navigate(`/material/${material._id}`);
+    }
     return(
         <>
-            <div className={'material-outer'}>
-                <div className={'material-heading'}>
-                    <div className={'material-heading-name'}>
+            <div className={'material-card-outer'}>
+                <div className={'material-card-heading'}>
+                    <div onClick={materialClick} className={'material-card-heading-name'}>
                         <span>{material.name}</span>
                     </div>
-                    <div className={'material-heading-right'}>
-                        <div className={'material-heading-right-info'}>
+                    <div className={'material-card-heading-right'}>
+                        <div className={'material-card-heading-right-info'}>
                             Owner
                         </div>
-                        <div className={'material-heading-right-options'}>
+                        <div className={'material-card-heading-right-options'}>
                             <MoreVertIcon />
                         </div>
                     </div>
                 </div>
-                <div className={'material-desc'}>
+                <div className={'material-card-desc'}>
                     <p>{material.desc}</p>
                 </div>
-                <div className={'material-options'}>
-                    <div className={'material-options-right'}>
+                <div className={'material-card-options'}>
+                    <div className={'material-card-options-right'}>
                         <div onClick={commentOnclick}>
                             <CommentOutlinedIcon/>
                             <span>235</span>
@@ -72,7 +77,7 @@ export function Material({commentOnclick,updateMaterial,index,material}){
                             <span>235</span>
                         </div>
                     </div>
-                    <div className={'material-options-left'}><ReplyOutlinedIcon style={{transform: "scaleX(-1)"}}/></div>
+                    <div className={'material-card-options-left'}><ReplyOutlinedIcon style={{transform: "scaleX(-1)"}}/></div>
                 </div>
             </div>
         </>
@@ -127,15 +132,15 @@ export function CreateMaterialForm({setScreen,setMaterials}){
                                 <div className={'create-material-input'}>
                                     <p>Material name</p>
                                     <div>
-                                        <input name={'name'}/>
+                                        <input required={'true'} name={'name'}/>
                                     </div>
                                 </div>
                             </div>
                             <div className={'create-material-desc'}>
-                                <textarea name={'desc'}></textarea>
+                                <textarea required={true} name={'desc'}></textarea>
                             </div>
                             <div className={'create-material-button'}>
-                                <button className={'close-btn'} onClick={closeScreen}>Close</button>
+                                <button className={'close-btn'} type={'button'} onClick={closeScreen}>Close</button>
                                 <button type={'submit'}>Create</button>
                             </div>
                         </div>

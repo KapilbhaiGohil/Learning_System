@@ -58,8 +58,8 @@
     }
 }
 
-//style for the material
-.material-outer{
+//style for the materialCard
+.material-card-outer{
     height: 11rem;
     display: flex;
     flex-direction: column;
@@ -69,12 +69,12 @@
     border-radius: 0.4rem;
     color: $fontColor;
     margin: 0 1rem 1rem 0;
-    .material-heading{
+    .material-card-heading{
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        .material-heading-name{
+        .material-card-heading-name{
             span{
                 color: $blueColor;
                 font-weight: 400;
@@ -84,10 +84,10 @@
                 }
             }
         }
-        .material-heading-right{
+        .material-card-heading-right{
             display: flex;
             align-items: center;
-            .material-heading-right-info{
+            .material-card-heading-right-info{
                 font-size: 0.8rem;
                 padding: 0.2rem 0.5rem;
                 line-height: 1rem;
@@ -95,7 +95,7 @@
                 border: 1px solid $borderColor;
                 font-weight: bold;
             }
-            .material-heading-right-options{
+            .material-card-heading-right-options{
                 cursor: pointer;
                 svg{
                     display: list-item;
@@ -110,18 +110,18 @@
             }
         }
     }
-    .material-desc{
+    .material-card-desc{
         height: 100%;
         margin: 0.7rem 0;
         p{
             font-size: 12px;
         }
     }
-    .material-options{
+    .material-card-options{
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        .material-options-right{
+        .material-card-options-right{
             display: flex;
             >div{
                 margin-right: 1rem;
@@ -138,7 +138,7 @@
                 }
             }
         }
-        .material-options-left{
+        .material-card-options-left{
             &:hover{
                 color:$blueColor;
             }

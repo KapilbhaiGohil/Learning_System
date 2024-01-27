@@ -85,77 +85,37 @@ MaterialRouter.post('/removeLike',getUser,async(req,res)=>{
         return res.status(500).send({msg:"Internal server error."})
     }
 })
-// MaterialRouter.post('/create',upload.single('backImg'),getUser,async(req,res)=>{
-//     try{
-//             if (!req.file) {
-//                 return res.status(400).json({ msg: 'Error occured while uploading file.' });
-//             }
-//             const {activeUser,name,desc} = req.body;
-//             const session = await mongoose.startSession();
-//             try{
-//                 session.startTransaction();
-//                 let user = await User.findOne({email:activeUser.email});
-//                 if(!user){
-//                     const newUser =await new User({_id:activeUser._id,email:activeUser.email});
-//                     await newUser.save();
-//                     user = newUser;
-//                 }
-//                 //Background Image file upload part
-//                 const filePath = path.join('./uploads',req.file.filename);
-//                 const newMaterial = await new Material({creator:user._id,name,desc});
-//                 await newMaterial.save();
-//                 user.material.push(newMaterial._id);
-//                 let cloudPath = user._id+'/'+newMaterial._id.toString()+'/backImg';
-//                 const fileUrl = await uploadFile(filePath,cloudPath,req.file);
-//                 fs.unlink(filePath,(err)=>{
-//                     if(err)console.log(e)
-//                 });
-//                 newMaterial.backImg = fileUrl;
-//                 await user.save();
-//                 await newMaterial.save();
-//                 await session.commitTransaction();
-//             }catch (e){
-//                 console.log(e)
-//                 await session.abortTransaction();
-//                 return res.status(500).send({msg:"Database Server error"})
-//             }finally {
-//                 await session.endSession();
-//             }
-//             return res.status(200).send({msg:"Material created successfully "});
-//     }catch(e){
-//         console.log(e)
-//         return res.status(500).send({msg:"Internal server error"})
-//     }
-// });
-// MaterialRouter.post('/delete',getUser,async(req,res)=>{
-//     const session = await mongoose.startSession();
-//     try{
-//         await session.startTransaction();
-//         let {id,activeUser} = req.body;
-//         activeUser = await User.findById(activeUser._id);
-//         if(!activeUser)return res.status(404).send({msg:"No user found to whom this material belongs to. "});
-//         let materials = activeUser.material;
-//         for (let i = 0; i < materials.length; i++) {
-//             if(materials[i].toString()===id){
-//                 let cloudPath = activeUser._id.toString()+'/'+id+'/backImg';
-//                 await deleteFolder(cloudPath);
-//                 await Material.deleteOne({_id:id});
-//                 materials.splice(i,1);
-//                 break;
-//             }
-//         }
-//         activeUser.material = materials;
-//         await activeUser.save();
-//         await session.commitTransaction();
-//         return res.status(200).send({msg:"Material deleted successfully"});
-//     }catch (e) {
-//         await session.abortTransaction();
-//         console.log(e);
-//     }finally {
-//         await session.endSession();
-//     }
-//     return res.status(500).send({msg:"Error while deleting file"})
-// });
+MaterialRouter.post('/addMaterial',getUser,async(req,res)=>{
+    const session = await mongoose.startSession();
+    try{
+        await session.startTransaction();
+        const {activeUser,materialId} = req.body;
+        let user = await User.findById(activeUser._id);
+        if(!user){
+            user = await new User({_id:activeUser._id,email:activeUser.email})
+            await user.save();
+        }
+        let material = await Material.findById(materialId);
+        if(!material)return res.status(400).send({msg:"Pls enter the correct code for the material."})
+        let alreadyHas = await User.find({_id:user._id,materials:material._id});
+        console.log(alreadyHas);
+        if(alreadyHas.length>0)return res.status(409).send({msg:"Material is already in your list."})
+        user.materials.push(material._id);
+        user.save();
+        await session.commitTransaction();
+        const materials = [];
+        for (let i = 0; i < user.materials.length; i++) {
+            materials.push(await Material.findById(user.materials[i].toString()));
+        }
+        return res.status(200).send({msg:"Successfully created new material.",materials});
+    }catch (e) {
+        await session.abortTransaction();
+        console.log(e);
+        return res.status(500).send({msg:e.toString()})
+    }finally{
+        await session.endSession();
+    }
+})
 
 MaterialRouter.post('/get',getUser,async(req,res)=>{
     try{

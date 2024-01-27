@@ -1,4 +1,4 @@
-import {Comment, CommentScreen, CreateMaterialForm, GetMaterialForm, Material} from '../2.components/home/components'
+import {CommentScreen, CreateMaterialForm, GetMaterialForm, MaterialCard} from '../2.components/home/components'
 import '../3.styles/globle.scss'
 import '../3.styles/home.scss'
 import {useEffect, useState} from "react";
@@ -50,10 +50,9 @@ export default function Home(){
                         <SearchIcon/>
                         <input placeholder={'Search your materials here....'}/>
                     </div>
-                    <div><button>Search</button></div>
                 </div>
                 <div className={'home-materials'}>
-                    {materials.length>0 ? materials.map((m,i)=><Material key={m._id} index={i} updateMaterial={updateMaterial} commentOnclick={commentOnclick} setScreen={setScreen} material={m}/>):
+                    {materials.length>0 ? materials.map((m,i)=><MaterialCard key={m._id} index={i} updateMaterial={updateMaterial} commentOnclick={commentOnclick} setScreen={setScreen} material={m}/>):
                         <>
                             <div>
                             <div>No material found</div>

@@ -1,0 +1,245 @@
+@import "globle";
+
+.material-outer{
+  color: $fontColor;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  height: 100vh;
+    .material-structure{
+      width: 22%;
+      overflow-y: scroll;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      height: 100%;
+      padding: 1rem;
+      border-right: 1px solid $borderColor;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+         .material-structure-search{
+           width: 100%;
+           position: relative;
+           svg{
+             position: absolute;
+             left: 6px;
+             border-right: 1px solid $borderColor;
+             height: 100%;
+             padding-right: 3px;
+           }
+           input{
+             padding-left: 3rem;
+           }
+           &:focus-within{
+             svg{
+               border-color: $blueColor;
+             }
+           }
+         }
+        .material-structure-info{
+          margin-top: 1rem;
+        }
+
+    }
+    .material-screen{
+      width: 78%;
+      height: 100%;
+      padding: 1rem;
+      overflow-y: scroll;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      .material-screen-path{
+
+      }
+      .material-screen-info{
+        border-radius: 0.3rem;
+        border: 1px solid $borderColor;
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        .material-screen-heading{
+          display: flex;
+          align-items: center;
+          padding: 0.65rem 1rem;
+          border-bottom: 1px solid $borderColor;
+          justify-content: space-between;
+          border-radius: 0.3rem 0.3rem 0 0;
+          background: $borderColor3;
+          font-size: 0.9rem;
+        }
+        >div:not(:first-child){
+          display: flex;
+          align-items: center;
+          padding: 0.65rem 1rem;
+          border-bottom: 1px solid $borderColor;
+          svg{
+            font-size: 1.2rem;
+            fill: #dfdfdf;
+            margin-right: 0.8rem;
+          }
+          &:hover{
+            background: $borderColor3;
+          }
+          span{
+            cursor: pointer;
+            font-size: 0.9rem;
+            &:hover{
+              color: $blueColor;
+              text-decoration: underline;
+            }
+          }
+        }
+      }
+    }
+}
+
+
+
+//style for the folderstructure compoonent
+.folder-structure-outer{
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  border-radius: 0.4rem;
+  >span{
+    margin-left: 0.4rem;
+    font-size: 0.85rem;
+  }
+  svg{
+    font-size: 1.2rem;
+    fill: $fontColor;
+  }
+  &:hover{
+    background: $borderColor;
+  }
+}
+//style for the filestructure compoonent
+.file-structure-outer{
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.4rem 0 0.4rem 1.1rem ;
+  border-radius: 0.4rem;
+  >span{
+    margin-left: 0.4rem;
+    font-size: 0.85rem;
+  }
+  svg{
+    font-size: 1.2rem;
+    fill: $fontColor;
+  }
+  &:hover{
+    background: $borderColor;
+  }
+}
+
+//style for the Path component
+.path-outer{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  .path{
+    ol{
+      display: flex;
+      align-items: center;
+      color:$fontColor;
+      li{
+        padding: 0 0 0 0.4rem ;
+        span{
+          margin-left: 0.4rem;
+        }
+      }
+    }
+  }
+  .path-right{
+    display: flex;
+    align-items: center;
+    .path-add-file{
+      padding: 0.3rem 0.8rem;
+      background: $borderColor3;
+      display: flex;
+      border-radius: 0.3rem;
+      align-items: center;
+      cursor: pointer;
+      border: 1px solid $borderColor2;
+      &:hover{
+        border-color: $fontColor;
+        background: $borderColor;
+      }
+      button{
+        font-weight: bold;
+        background: transparent;
+        width: auto;
+        height: auto;
+        margin-right: 0.1rem;
+        letter-spacing: normal;
+      }
+      svg{font-size: 1.2rem;}
+    }
+    .path-add-file-extension{
+      position: absolute;
+      top: 2.3rem;
+      right: 3.6rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: $bodyBack;
+      border: 1px solid $borderColor;
+      padding: 0.5rem;
+      border-radius: 0.3rem;
+      box-shadow: 0 0px 1px 0px rgb(240 240 240);
+      div{
+        padding: 0.3rem;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+        &:hover{
+          background: $borderColor;
+        }
+        >input{
+          width: 0.1px;
+          height: 0.1px;
+          opacity: 0;
+          overflow: hidden;
+          position: absolute;
+          z-index: -1;
+        }
+        svg{font-size: 1.2rem;margin-right: 0.4rem;}
+      }
+    }
+    .path-options{
+      padding: 0.3rem 0.8rem;
+      margin-left: 0.5rem;
+      background: $borderColor3;
+      justify-content: space-between;
+      display: flex;
+      border-radius: 0.3rem;
+      align-items: center;
+      cursor: pointer;
+      border: 1px solid $borderColor2;
+      &:hover{
+        border-color: $fontColor;
+        background: $borderColor;
+      }
+    }
+  }
+}
+
+//style for the uploadScree
+.upload{
+  .upload-outer{
+    .upload-info{
+
+    }
+    .upload-buttons{
+
+    }
+  }
+}

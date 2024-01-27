@@ -37,7 +37,7 @@ export function ContextProvider({children}){
 
 async function getUser(){
     try{
-        const res = await fetch('User/getUser',{
+        const res = await fetch('/User/getUser',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
