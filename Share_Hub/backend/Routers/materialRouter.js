@@ -3,24 +3,13 @@ import {mongoose} from "../Database/conn.js";
 import User from "../Models/User.js"
 import {Material} from "../Models/Material.js";
 const MaterialRouter = express.Router()
-MaterialRouter.use(express.json())
-import {getUser} from "../middleware/midllewares.js";
-import multer from "multer";
-import path from "path";
-import {deleteFolder, uploadFile} from "../Utils/fileFunctions.js";
+import {getUser, upload, uploadMultipleFiles,} from "../middleware/midllewares.js";
+import {listFilesAndDirs, uploadFile, uploadFiles} from "../Utils/fileFunctions.js";
 import fs from "fs";
+import bodyParser from 'body-parser';
+MaterialRouter.use(express.json())
+MaterialRouter.use(bodyParser.json())
 
-const fileRouter = express.Router()
-const storage = multer.diskStorage({
-    destination:function (req,file,cb){
-        cb(null,'./uploads');
-    },
-    filename:function (req,file,cb){
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, file.originalname+'-'+uniqueSuffix)
-    }
-})
-const upload = multer({storage:storage});
 MaterialRouter.post('/create',getUser,async(req,res)=>{
     const session = await mongoose.startSession();
     try{
@@ -132,7 +121,49 @@ MaterialRouter.post('/get',getUser,async(req,res)=>{
         return res.status(500).send({msg:"Internal server error"})
     }
 })
-export {MaterialRouter,fileRouter};
+
+
+MaterialRouter.post('/getMaterialById',getUser,async(req,res)=>{
+    try{
+        const {activeUser,materialId} = req.body;
+        const user = await User.findOne({_id:activeUser._id,materials: materialId});
+        if(!user)return res.status(200).send({msg:"This material does not belongs to you try with another one"});
+        const material = await Material.findOne({_id:materialId});
+        return res.status(200).json(material);
+    }catch (e){
+        console.log(e);
+        return res.status(500).send({msg:e.toString()})
+    }
+})
+
+MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=>{
+    try{
+        const {activeUser,initialPath,manualPath} = req.body;
+        let cloudPath = activeUser._id+'/'+initialPath+'/';
+        if(manualPath)cloudPath+=manualPath+'/';
+        console.log(manualPath,cloudPath)
+        await uploadFile(req.file,cloudPath);
+        fs.unlinkSync(req.file.path);
+        return res.status(200).send({msg:"file uploaded successfully"});
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:"Internal server error."})
+    }
+})
+
+MaterialRouter.post('/getFilesList',getUser,async(req,res)=>{
+    try{
+          const {activeUser,path} = req.body;
+          let cloudPath = activeUser._id+"/"+path+"/";
+          const {files,folders} = await listFilesAndDirs(cloudPath);
+          let normalPath = path.slice(25,path.length);
+          return res.status(200).json({files,prefix:normalPath,folders});
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:e.toString()})
+    }
+})
+export {MaterialRouter};
 
 
 //basic format

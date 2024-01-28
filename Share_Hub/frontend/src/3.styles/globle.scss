@@ -26,15 +26,51 @@ a{
         border-bottom: 1px solid $blueColor;
     }
 }
+
+input[type="file"]{
+    width: 7rem;
+    color: black;
+    border: none;
+    padding: 0;
+    position: relative;
+    &::before{
+        position: absolute;
+        pointer-events: none;
+        inset: 6px 8px 6px 8px;
+        content: "";
+        background-image: url("../5.assets/upload.svg");
+        background-repeat: no-repeat;
+    }
+    &::after {
+        position: absolute;
+        pointer-events: none;
+        top: 4px;
+        left: 30px;
+        color: $blueColor;
+        content: "Add File";
+    }
+    &::file-selector-button{
+        outline: none;
+        border: none;
+        background: $borderColor3;
+        cursor: pointer;
+        width: 8rem;
+        height: 2rem;
+        color:transparent;
+        @supports (-moz-appearance: none) {
+            color: black;
+        }
+    }
+}
 //default button style
 button{
-    border-radius: 0.3rem;
+    border-radius: 0.2rem;
     outline: none;
     border: none;
     background: $blueColor;
     float: right;
     color: $fontColor;
-    letter-spacing: 1px;
+    //letter-spacing: 1px;
     cursor: pointer;
     width: 8rem;
     height: 2rem;

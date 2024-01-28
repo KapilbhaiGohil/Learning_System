@@ -132,7 +132,7 @@ export function CreateMaterialForm({setScreen,setMaterials}){
                                 <div className={'create-material-input'}>
                                     <p>Material name</p>
                                     <div>
-                                        <input required={'true'} name={'name'}/>
+                                        <input required={true} name={'name'}/>
                                     </div>
                                 </div>
                             </div>

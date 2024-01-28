@@ -37,6 +37,7 @@
            }
          }
         .material-structure-info{
+          position: relative;
           margin-top: 1rem;
         }
 
@@ -103,11 +104,23 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 0.4rem 0;
   border-radius: 0.4rem;
-  >span{
-    margin-left: 0.4rem;
-    font-size: 0.85rem;
+  .folder-structure-angular{
+    border-bottom-left-radius: inherit;
+    border-top-left-radius: inherit;
+    padding: 0.5rem 0;
+    font-size: 0rem;
+    &:hover{
+      background: $borderColor2 ;
+    }
+  }
+  .folder-structure-folder{
+    padding: 0.5rem 0;
+    display: flex;
+    .folder-structure-name{
+      margin-left: 0.4rem;
+      font-size: 0.85rem;
+    }
   }
   svg{
     font-size: 1.2rem;
@@ -149,9 +162,14 @@
       align-items: center;
       color:$fontColor;
       li{
-        padding: 0 0 0 0.4rem ;
-        span{
-          margin-left: 0.4rem;
+        .span-link{
+          margin-left: 0.3rem;
+          margin-right: 0.3rem;
+          cursor: pointer;
+          color: $blueColor;
+          &:hover{
+            border-bottom: 1px solid $blueColor;
+          }
         }
       }
     }
@@ -234,12 +252,121 @@
 
 //style for the uploadScree
 .upload{
+  position: fixed;
+  inset: 0 0 0 0;
+  height: 100%;
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   .upload-outer{
-    .upload-info{
-
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    background: black;
+    padding: 1rem;
+    border: 1px solid $borderColor;
+    border-radius: 0.4rem;
+    position: absolute;
+    top:2rem;
+    width: 64%;
+    .upload-heading{
+      font-weight: 400;
+      color: $blueColor;
+      font-size: 1.7rem;
+      border-bottom: 1px solid;
+      padding: 0.2rem 0;
     }
-    .upload-buttons{
-
+    .upload-area{
+      display: flex;
+      justify-content: space-between;
+      .upload-info{
+        width: 49%;
+        margin-top: 1rem;
+        position: relative;
+        height: 14rem;
+        overflow-y: scroll;
+        border: 1px solid $borderColor;
+        border-radius: 0.3rem;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        .upload-input{
+          background: $borderColor3;
+          border-bottom: 1px solid $borderColor;
+        }
+          span{
+            padding: 0.3rem 1rem;
+            display: block;
+          }
+        &::-webkit-scrollbar{
+          width: 0;
+        }
+      }
+      .upload-drag-area{
+        width: 49%;
+        margin-top: 1rem;
+        position: relative;
+        height: 14rem;
+        border: 1px solid $borderColor;
+        border-radius: 0.3rem;
+        .upload-input{
+          position: sticky;
+          top: 0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: $borderColor3;
+          border-bottom: 1px solid $borderColor;
+          >span{
+            padding-left: 1rem;
+          }
+        }
+        .upload-drag-area-div{
+          display: flex;
+          margin: 0.3rem;
+          justify-content: center;
+          height: 80%;
+          color: $blueColor;
+          border: 1px dashed $borderColor;
+        }
+      }
     }
+    .upload-control{
+      display: flex;
+      flex-direction: column;
+      .upload-buttons{
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1rem;
+        .close-btn{
+          margin-right: 1rem;
+        }
+      }
+    }
+  }
+}
+
+//style for the upload-file component
+.upload-file{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 1rem;
+  font-size: 0.85rem;
+  .upload-file-info{
+    display: flex;
+    align-items: center;
+    svg{
+      font-size: 1.1rem;
+    }
+  }
+  .upload-file-close{
+    cursor: pointer;
+    svg{
+      font-size: 1rem;
+    }
+  }
+  &:hover{
+    background: $borderColor3;
   }
 }
