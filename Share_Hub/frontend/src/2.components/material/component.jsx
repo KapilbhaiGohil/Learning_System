@@ -7,29 +7,38 @@ import {
 } from '@mui/icons-material';
 import {useEffect, useState} from "react";
 import CloseIcon from '@mui/icons-material/Close';
-import {getFilesList, uploadFile} from "./fetchRequest";
+import {getFilesList, getPathAsString, uploadFile} from "./fetchRequest";
 
-export function FolderStructure({allFiles,setAllFiles,setPathArray,folder,prefix,materialId,depth}){
+export function FolderStructure({allFiles,setAllFiles,pathArray,setPathArray,folder,prefix,material,depth}){
     const [isOpen,setIsOpen] = useState(false);
     const [files,setFiles] = useState({});
     console.log("all files info from folder structure : ",allFiles)
-    const openFolderContentOnStructure=async(e,manual=false)=>{
+    const openFolderContentOnStructure=async(e,destFolder,manual=false)=>{
         e.preventDefault();
         e.stopPropagation();
+        console.log('open value ',isOpen);
+        if(manual)setIsOpen(true);
         if(!isOpen){
-            let temp = {...allFiles},item = temp;
-            for (let i = 0; i < depth; i++) {
-                item = item.folders;
+            let temp = {...allFiles},item = temp,prefixArray = prefix.split('/');
+            for (let i = 0; i < prefixArray.length; i++) {
+                for (let j = 0; j < item.folders.length; j++) {
+                    console.log(i,j,prefix,item)
+                    if(item.folders[j].name===prefixArray[i]){
+                        item = item.folders[j];
+                        break;
+                    }
+                }
             }
-            if(item.files && item.folders && !manual){
+            if((item.files.length>0 || item.folders.length>0) && !manual){
                 setFiles(item);
                 setIsOpen(true);
             }else{
-                const {res,data} = await getFilesList(materialId+"/"+prefix);
+                const {res,data} = await getFilesList(material._id+"/"+prefix);
                 if(res.ok){
                     setFiles(data);
-                    item.files = data.files;
-                    item.folders = data.folders;
+                    item.name = destFolder.name
+                    item.files = data.files
+                    item.folders = data.folders
                     setAllFiles(temp);
                     setIsOpen(true);
                 }
@@ -39,69 +48,81 @@ export function FolderStructure({allFiles,setAllFiles,setPathArray,folder,prefix
             if(!manual)setIsOpen(false);
         }
     }
-    const selectFile=async(e,isFolder)=>{
+    useEffect(() => {
+        console.log(pathArray)
+        console.log(prefix,folder.name)
+    }, [pathArray]);
+    const selectFolder=async(e)=>{
         e.preventDefault();
         e.stopPropagation();
-        await openFolderContentOnStructure(e,true);
-        if(prefix.length>0)setPathArray(prefix.split('/'));
-        else setPathArray([]);
+        console.log(prefix)
+        setIsOpen(false)
+        await openFolderContentOnStructure(e,folder,true);
+        if(prefix.length>0){
+            let temp = prefix.split('/'),ans=[pathArray[0]];
+            for (let i = 0; i < temp.length; i++) {
+                ans.push({name:temp[i],type:'folder'});
+            }
+            setPathArray(ans);
+        }
+        else setPathArray([{name:folder.name,type:'folder'}]);
     }
     return(
         <>
-            <div onClick={(e)=>{selectFile(e,true)}} style={prefix==='' ? {marginLeft:`9px`}:{marginLeft: "9px",borderLeft:"1px solid #373737"}}>
+            <div onClick={(e)=>{selectFolder(e,true)}} style={prefix==='' ? {marginLeft:`9px`}:{marginLeft: "9px",borderLeft:"1px solid #373737"}}>
                 <div className={'folder-structure-outer'}>
-                    <div onClick={openFolderContentOnStructure} className={'folder-structure-angular'}>
+                    <div onClick={(e)=>{openFolderContentOnStructure(e,folder)}} className={'folder-structure-angular'}>
                         <ChevronRightRounded style={isOpen ? {transform:"rotate(90deg)"} :{}} />
                     </div>
                     <div className={'folder-structure-folder'}>
                         {isOpen ?<FolderOpenRounded/> :<FolderRounded/>}
-                        <div className={'folder-structure-name'}>{folder}</div>
+                        <div className={'folder-structure-name'}>{folder.name}</div>
                     </div>
                 </div>
-                {isOpen && files.folders && files.folders.map((folder,i)=><FolderStructure key={i} setPathArray={setPathArray} folder={folder} materialId={materialId} setAllFiles={setAllFiles} depth={depth+1} allFiles={allFiles} prefix={prefix.length>0 ?prefix+"/"+folder:folder}/>)}
-                {isOpen &&files.files && files.files.map((file,i)=><FileStructure key={i} selectFile={selectFile}  file={file}/>)}
+                {isOpen && files.folders && files.folders.map((folder,i)=><FolderStructure key={i} pathArray={pathArray} setPathArray={setPathArray} folder={folder} material={material} setAllFiles={setAllFiles} depth={depth+1} allFiles={allFiles} prefix={prefix.length>0 ?prefix+"/"+folder.name:folder.name}/>)}
+                {isOpen && files.files && files.files.map((file,i)=><FileStructure key={i}  file={file}/>)}
             </div>
         </>
     )
 }
-export function FileStructure({file,selectFile}){
+export function FileStructure({file}){
     return(
         <>
-                <div style={{marginLeft:`9px`,borderLeft:"1px solid #373737",borderRadius:"0"}} >
-                    <div className={'file-structure-outer'}>
-                        <InsertDriveFileOutlined/>
-                        <span>{file}</span>
-                    </div>
+            <div style={{marginLeft:`9px`,borderLeft:"1px solid #373737",borderRadius:"0"}} >
+                <div className={'file-structure-outer'}>
+                    <InsertDriveFileOutlined/>
+                    <span>{file.name}</span>
                 </div>
+            </div>
         </>
     )
 }
 export function FolderInfo({folder,setPathArray}){
     const handleFolderClick = (e)=>{
-        if(folder==='. .'){setPathArray((prev)=>{
+        if(folder.name==='. .'){setPathArray((prev)=>{
             let temp = [...prev];
             temp.pop();
             return temp;
         })}
         else{
-            setPathArray((prev)=>[...prev,folder]);
+            setPathArray((prev)=>[...prev, {name:folder.name,type:'folder'}]);
         }
     }
     return(
         <>
-            <div style={{ cursor: folder === '. .' ? 'pointer' : ''}} onClick={ folder==='. .' ? handleFolderClick : ()=>{}} className={'folder-info-outer'}>
+            <div style={{ cursor: folder.name === '. .' ? 'pointer' : ''}} onClick={ folder.name==='. .' ? handleFolderClick : ()=>{}} className={'folder-info-outer'}>
                 <FolderRounded/>
-                <span onClick={handleFolderClick}>{folder}</span>
+                <span onClick={handleFolderClick}>{folder.name}</span>
             </div>
         </>
     )
 }
-export function FileInfo({file}){
+export function FileInfo({file,showFile}){
     return(
         <>
             <div className={'file-info-outer'}>
                 <InsertDriveFileOutlined/>
-                <span>{file}</span>
+                <span onClick={(e)=>{showFile(e,file)}}>{file.name}</span>
             </div>
         </>
     )
@@ -127,14 +148,10 @@ export function Path({material,pathArray,setPathArray}){
             <div className={'path-outer'}>
                 <div className={'path'}>
                     <ol>
-                        <li>
-                            <span onClick={(e)=>{spanPathClick(e,-1)}} className={'span-link'}>{material.name}</span>
-                            <span>/</span>
-                        </li>
                         {pathArray && pathArray.map((p,i)=>
                             <li key={i}>
-                                <span onClick={(e)=>{spanPathClick(e,i)}} className={'span-link'}>{p}</span>
-                                <span>/</span>
+                                <span onClick={(e)=>{spanPathClick(e,i)}} className={'span-link'}>{p.name}</span>
+                                {p.type==='folder' && <span>/</span>}
                             </li>
                         )}
                     </ol>
@@ -226,7 +243,7 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
     }
     const uploadFilesClick=async (e)=>{
         let initialPath = material._id;
-        if(pathArray.length>0)initialPath+='/'+pathArray.join('/');
+        if(pathArray.length>0)initialPath+='/'+getPathAsString(pathArray,1);
         for (let i = 0; i < files.length; i++) {
             const filesData = new FormData();
             filesData.append(`inputFile`,files[i]);

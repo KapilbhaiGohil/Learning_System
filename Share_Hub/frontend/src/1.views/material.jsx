@@ -2,20 +2,24 @@ import {useNavigate, useParams} from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import "../3.styles/material.scss"
 import {FileInfo, FileStructure, FolderInfo, FolderStructure, Path} from "../2.components/material/component";
-import {getFilesList, getMaterialById} from "../2.components/material/fetchRequest";
+import {getFilesList, getMaterialById, getPathAsString} from "../2.components/material/fetchRequest";
 import {useEffect, useState} from "react";
+import FileViewer from "../2.components/material/FileViewer";
 export default function Material(){
     const [material,setMaterial] = useState({});
     const [pathArray,setPathArray] = useState([]);
     const [allFiles,setAllFiles] = useState({})
     const [files,setFiles] = useState({files:[],folders:[]});
+    const [isFileScreen,setIsFileScreen] = useState({isFile:false,file:''});
     const navigate = useNavigate();
     const {id} = useParams();
+
     useEffect(() => {
         async function func(){
             let {res,data} = await getMaterialById(id);
             if(res.ok){
                 setMaterial(data);
+                setPathArray([{name:data.name,type:'folder'}]);
             }else{
                 navigate('/home');
             }
@@ -26,19 +30,25 @@ export default function Material(){
         async function func(){
             if(material._id){
                 let path = material._id
-                if(pathArray.length>0){
-                    let tempStr= pathArray.join("/");
-                    path+="/"+tempStr;
+                if(pathArray.length>1){
+                    path+="/"+ getPathAsString(pathArray,1);
                 }
                 let temp = {...allFiles},item = temp;
-                for (let i = 0; i < pathArray.length; i++) {
-                    item = item.folders;
+                for (let i = 0; i < pathArray.length-1; i++) {
+                    for (let j = 0; j < item.folders.length; j++) {
+                        console.log(item,i,j,item.folders[j].name,pathArray)
+                        if(item.folders[j].name===pathArray[i+1].name){
+                            item = item.folders[j];
+                            break;
+                        }
+                    }
                 }
                 const {res,data} = await getFilesList(path);
                 if(res.ok){
                     setFiles({files:data.files,folders:data.folders})
-                    item.files = data.files;
-                    item.folders = data.folders;
+                    item.name = pathArray[pathArray.length-1].name
+                    item.files = data.files
+                    item.folders = data.folders
                     setAllFiles(temp);
                 }else{
                     navigate('/home')
@@ -47,6 +57,10 @@ export default function Material(){
         }
         func();
     }, [material,pathArray]);
+    const showFile=(e,file)=>{
+        // setIsFileScreen({isFile: true,file});
+        setPathArray([...pathArray,{name:file.name,type:'file'}]);
+    }
     return(
         <>
             <div className={'material-outer'}>
@@ -56,7 +70,9 @@ export default function Material(){
                         <input placeholder={'Go to file....'}/>
                     </div>
                     <div className={'material-structure-info'}>
-                        <FolderStructure allFiles={allFiles} setPathArray={setPathArray} setAllFiles={setAllFiles} folder={material.name} prefix={''} depth={0} materialId={material._id}/>
+                        {allFiles.folders && <FolderStructure pathArray={pathArray} allFiles={allFiles} setPathArray={setPathArray}
+                                          setAllFiles={setAllFiles} folder={{name:material.name}} prefix={''} depth={0}
+                                          material={material}/>}
                     </div>
                 </div>
                 <div className={'material-screen'}>
@@ -67,9 +83,12 @@ export default function Material(){
                         <div className={'material-screen-heading'}>
                             <span>Name</span>
                         </div>
-                        {pathArray.length>0 && <FolderInfo folder={'. .'} setPathArray={setPathArray}/>}
-                        {files.folders.map((folder,i)=><FolderInfo key={i} folder={folder} setPathArray={setPathArray}/>)}
-                        {files.files.map((file,i)=><FileInfo key={i} file={file}/>)}
+                        {pathArray.length>1 && pathArray[pathArray.length-1].type==='folder' && <FolderInfo folder={{name:'. .',type:'folder'}} setPathArray={setPathArray}/>}
+                        {!isFileScreen.isFile && files.folders.map((folder,i)=><FolderInfo key={i}  folder={folder} setPathArray={setPathArray}/>)}
+                        {!isFileScreen.isFile && files.files.map((file,i)=><FileInfo showFile={showFile} key={i}  file={file}/>)}
+                        {/*{isFileScreen.isFile &&*/}
+                        {/*    <FileViewer file={isFileScreen.file} setIsFileScreen={setIsFileScreen}/>*/}
+                        {/*}*/}
                     </div>
                 </div>
             </div>

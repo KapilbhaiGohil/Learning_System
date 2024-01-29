@@ -40,3 +40,11 @@ export const getFilesList=async (path)=>{
         console.log(e);
     }
 }
+
+export function getPathAsString(pathArray,start=0){
+    let str = "";
+    for (let i = start; i < pathArray.length; i++) {
+        str+=pathArray[i].name+"/";
+    }
+    return str;
+}

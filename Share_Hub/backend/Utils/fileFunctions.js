@@ -29,13 +29,14 @@ export async function listFilesAndDirs(cloudPath){
     const storageRef = ref(storage,cloudPath)
     const listResult = await listAll(storageRef);
     const files=[],folders=[];
-    listResult.items.forEach((file)=>{
+    for (const file of listResult.items) {
         let ext = path.extname(file.name);
         let originalName = file.name.slice(0,-24-ext.length)+ext;
-        files.push(originalName);
-    })
+        let url = await getDownloadURL(file);
+        files.push({name:originalName,url:url});
+    }
     listResult.prefixes.forEach((folder)=>{
-        folders.push(folder.name);
+        folders.push({name:folder.name,files:[],folders:[]});
     })
     return {files,folders};
 }
