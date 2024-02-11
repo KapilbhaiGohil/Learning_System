@@ -1,4 +1,5 @@
 import {createContext, useEffect, useState} from "react";
+import {Cookies} from "react-cookie";
 
 export const Context = createContext(
     {
@@ -23,7 +24,8 @@ export function ContextProvider({children}){
             if(res.ok){
                 setActiveUser(data);
             }else{
-                window.location.replace('http://localhost:3001/auth')
+                window.alert('failed')
+                // window.location.replace('http://localhost:3001/auth')
             }
         }
         func();
@@ -34,14 +36,18 @@ export function ContextProvider({children}){
         </Context.Provider>
     )
 }
-
+const url = "http://localhost:8080";
 async function getUser(){
     try{
-        const res = await fetch('/User/getUser',{
+        const cookies = new Cookies();
+        const token = cookies.get('token');
+        console.log(token);
+        const res = await fetch(url+'/User/getUser',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
             },
+            body:JSON.stringify({token})
         });
         const data = await res.json();
         return {res,data};

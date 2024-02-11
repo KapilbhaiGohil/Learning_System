@@ -8,30 +8,29 @@ import {
 import {useEffect, useState} from "react";
 import CloseIcon from '@mui/icons-material/Close';
 import {getFilesList, getPathAsString, uploadFile} from "./fetchRequest";
+import {Cookies} from "react-cookie";
 
-export function FolderStructure({allFiles,setAllFiles,pathArray,setPathArray,folder,prefix,material,depth}){
+export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPathArray,folder,prefix,material,depth}){
     const [isOpen,setIsOpen] = useState(false);
     const [files,setFiles] = useState({});
-    console.log("all files info from folder structure : ",allFiles)
+
     const openFolderContentOnStructure=async(e,destFolder,manual=false)=>{
         e.preventDefault();
         e.stopPropagation();
-        console.log('open value ',isOpen);
-        if(manual)setIsOpen(true);
-        if(!isOpen){
+        if(!isOpen || manual){
             let temp = {...allFiles},item = temp,prefixArray = prefix.split('/');
             for (let i = 0; i < prefixArray.length; i++) {
                 for (let j = 0; j < item.folders.length; j++) {
-                    console.log(i,j,prefix,item)
                     if(item.folders[j].name===prefixArray[i]){
                         item = item.folders[j];
                         break;
                     }
                 }
             }
-            if((item.files.length>0 || item.folders.length>0) && !manual){
+            if((item.folders.length>0 || item.files.length>0) && !manual){
                 setFiles(item);
                 setIsOpen(true);
+                console.log("buffered data for ",folder)
             }else{
                 const {res,data} = await getFilesList(material._id+"/"+prefix);
                 if(res.ok){
@@ -43,20 +42,37 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,setPathArray,fol
                     setIsOpen(true);
                 }
             }
-
         }else{
             if(!manual)setIsOpen(false);
         }
     }
     useEffect(() => {
-        console.log(pathArray)
-        console.log(prefix,folder.name)
+        let temp = prefix.split('/');
+        if(depth>pathArray.length-1){
+            if(temp.includes(pathArray[pathArray.length-1].name)|| pathArray.length===1){
+                setIsOpen(false);
+                setFiles([]);
+            }
+        }
     }, [pathArray]);
+    useEffect(() => {
+        if(depth === pathArray.length-1 && folder.name===pathArray[pathArray.length-1].name){
+            let temp = {...allFiles},item = temp,prefixArray = prefix.split('/');
+            for (let i = 0; i < prefixArray.length; i++) {
+                for (let j = 0; j < item.folders.length; j++) {
+                    if(item.folders[j].name===prefixArray[i]){
+                        item = item.folders[j];
+                        break;
+                    }
+                }
+            }
+            setFiles(item);
+            setIsOpen(true);
+        }
+    }, [allFiles]);
     const selectFolder=async(e)=>{
         e.preventDefault();
         e.stopPropagation();
-        console.log(prefix)
-        setIsOpen(false)
         await openFolderContentOnStructure(e,folder,true);
         if(prefix.length>0){
             let temp = prefix.split('/'),ans=[pathArray[0]];
@@ -69,8 +85,8 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,setPathArray,fol
     }
     return(
         <>
-            <div onClick={(e)=>{selectFolder(e,true)}} style={prefix==='' ? {marginLeft:`9px`}:{marginLeft: "9px",borderLeft:"1px solid #373737"}}>
-                <div className={'folder-structure-outer'}>
+            <div style={prefix==='' ? {marginLeft:`9px`}:{marginLeft: "9px",borderLeft:"1px solid #373737"}}>
+                <div onClick={(e)=>{selectFolder(e,true)}} className={'folder-structure-outer'}>
                     <div onClick={(e)=>{openFolderContentOnStructure(e,folder)}} className={'folder-structure-angular'}>
                         <ChevronRightRounded style={isOpen ? {transform:"rotate(90deg)"} :{}} />
                     </div>
@@ -79,17 +95,17 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,setPathArray,fol
                         <div className={'folder-structure-name'}>{folder.name}</div>
                     </div>
                 </div>
-                {isOpen && files.folders && files.folders.map((folder,i)=><FolderStructure key={i} pathArray={pathArray} setPathArray={setPathArray} folder={folder} material={material} setAllFiles={setAllFiles} depth={depth+1} allFiles={allFiles} prefix={prefix.length>0 ?prefix+"/"+folder.name:folder.name}/>)}
-                {isOpen && files.files && files.files.map((file,i)=><FileStructure key={i}  file={file}/>)}
+                {isOpen && files.folders && files.folders.map((folder,i)=><FolderStructure key={i} showFile={showFile} pathArray={pathArray} setPathArray={setPathArray} folder={folder} material={material} setAllFiles={setAllFiles} depth={depth+1} allFiles={allFiles} prefix={prefix.length>0 ?prefix+"/"+folder.name:folder.name}/>)}
+                {isOpen && files.files && files.files.map((file,i)=><FileStructure key={i} prefix={prefix} showFile={showFile}  file={file}/>)}
             </div>
         </>
     )
 }
-export function FileStructure({file}){
+export function FileStructure({file,showFile,prefix}){
     return(
         <>
             <div style={{marginLeft:`9px`,borderLeft:"1px solid #373737",borderRadius:"0"}} >
-                <div className={'file-structure-outer'}>
+                <div onClick={(e)=>{showFile(e,file,true,prefix)}} className={'file-structure-outer'}>
                     <InsertDriveFileOutlined/>
                     <span>{file.name}</span>
                 </div>
@@ -244,14 +260,15 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
     const uploadFilesClick=async (e)=>{
         let initialPath = material._id;
         if(pathArray.length>0)initialPath+='/'+getPathAsString(pathArray,1);
+        const token = new Cookies().get('token');
         for (let i = 0; i < files.length; i++) {
             const filesData = new FormData();
             filesData.append(`inputFile`,files[i]);
             filesData.append('initialPath',initialPath);
+            filesData.append('token',token);
             if(files[i].manualPath)filesData.append('manualPath',files[i].manualPath);
             const {res,data} = await uploadFile(filesData);
         }
-        console.log(files);
         setPathArray((prev)=>[...prev]);
         uploadFileClick();
     }

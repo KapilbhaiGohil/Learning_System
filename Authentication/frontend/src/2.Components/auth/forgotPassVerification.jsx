@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { OtpInput } from "./basicComponent";
 import { useNavigate, useOutletContext } from "react-router-dom";
-
+const url = "http://localhost:8000";
 export default function ForgoPassVerification(){
     const [otpError,setOtpError] = useState({msg:''});
     const [email,password] = useOutletContext();
@@ -13,7 +13,7 @@ export default function ForgoPassVerification(){
         if(otp.length !==6 || otp.includes(' ')){
             setOtpError({msg:'Pls fill out all the digits before submitting'});
         }else{
-            const res = await fetch('/auth/forgot-pass',{
+            const res = await fetch(url+'/auth/forgot-pass',{
                 method:"POST",
                 headers:{
                     "Content-type":"application/json"

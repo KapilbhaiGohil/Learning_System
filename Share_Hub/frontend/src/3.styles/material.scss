@@ -49,9 +49,6 @@
       overflow-y: scroll;
       -ms-overflow-style: none;
       scrollbar-width: none;
-      &::-webkit-scrollbar {
-        display: none;
-      }
       .material-screen-path{
 
       }
@@ -62,6 +59,9 @@
         margin-top: 1rem;
         display: flex;
         flex-direction: column;
+        &::-webkit-scrollbar{
+          width: 0;
+        }
         .material-screen-heading{
           display: flex;
           align-items: center;
@@ -72,7 +72,7 @@
           background: $borderColor3;
           font-size: 0.9rem;
         }
-        >div:not(:first-child){
+        >div:not(:first-child):not(.content-screen){
           display: flex;
           align-items: center;
           padding: 0.65rem 1rem;
@@ -82,7 +82,7 @@
             fill: #dfdfdf;
             margin-right: 0.8rem;
           }
-          &:hover{
+          &:hover:not(.content-screen){
             background: $borderColor3;
           }
           span{
@@ -369,5 +369,29 @@
   }
   &:hover{
     background: $borderColor3;
+  }
+}
+
+.content-screen{
+  height: 100%;
+  overflow-y: scroll;
+  padding: 0;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  iframe{
+    height: 100%;
+    width: 100%;
+    border: none;
+  }
+  pre{
+    line-height: 25px;
+    height: 100%;
+    width: 100%;
+    font-size: 14px;
+    code{
+      //padding: 0;
+      min-height: 100%;
+    }
   }
 }

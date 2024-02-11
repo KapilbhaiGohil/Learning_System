@@ -5,7 +5,7 @@ import eimg from "../../Assets/email.png"
 import {Link, Outlet, useNavigate, useOutlet, useOutletContext} from "react-router-dom";
 import { useState } from "react";
 import {$err} from "../../3.Styles/globle.js"
-
+const url = "http://localhost:8000"
 export default function Register(){
     const [email,setEmail] = useState('');
     const [error,setError] = useState({msg:'',field:''})
@@ -24,7 +24,7 @@ export default function Register(){
     const register = async function (e){
         e.preventDefault();
         setError({msg:'',field:''})
-        const res = await fetch('/auth/signUp',{
+        const res = await fetch(url+'/auth/signUp',{
             method:"POST",
             headers:{
                 "Content-type":"application/json"

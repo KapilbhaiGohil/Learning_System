@@ -28,7 +28,7 @@ export default function Material(){
     }, []);
     useEffect(() => {
         async function func(){
-            if(material._id){
+            if(material._id && pathArray[pathArray.length-1].type==='folder'){
                 let path = material._id
                 if(pathArray.length>1){
                     path+="/"+ getPathAsString(pathArray,1);
@@ -57,9 +57,24 @@ export default function Material(){
         }
         func();
     }, [material,pathArray]);
-    const showFile=(e,file)=>{
-        // setIsFileScreen({isFile: true,file});
-        setPathArray([...pathArray,{name:file.name,type:'file'}]);
+
+    const showFile=(e,file,fromStructure=false,prefix=undefined)=>{
+        setIsFileScreen({isFile: true,file});
+        let temp = [];
+        console.log(prefix,pathArray);
+        if(fromStructure){
+            if(prefix)temp = [pathArray[0],...prefix.split('/').map((name)=>{return {name:name,type:'folder'}})];
+            else temp = [pathArray[0]]
+        }else{
+            for (let i = 0; i < pathArray.length; i++) {
+                if(pathArray[i].type==='file'){
+                    break;
+                }else{
+                    temp.push(pathArray[i])
+                }
+            }
+        }
+        setPathArray([...temp,{name:file.name,type:'file'}]);
     }
     return(
         <>
@@ -71,7 +86,7 @@ export default function Material(){
                     </div>
                     <div className={'material-structure-info'}>
                         {allFiles.folders && <FolderStructure pathArray={pathArray} allFiles={allFiles} setPathArray={setPathArray}
-                                          setAllFiles={setAllFiles} folder={{name:material.name}} prefix={''} depth={0}
+                                          setAllFiles={setAllFiles} showFile={showFile} folder={{name:material.name}} prefix={''} depth={0}
                                           material={material}/>}
                     </div>
                 </div>
@@ -83,12 +98,12 @@ export default function Material(){
                         <div className={'material-screen-heading'}>
                             <span>Name</span>
                         </div>
-                        {pathArray.length>1 && pathArray[pathArray.length-1].type==='folder' && <FolderInfo folder={{name:'. .',type:'folder'}} setPathArray={setPathArray}/>}
+                        {pathArray.length > 1 && pathArray[pathArray.length-1].type==='folder' && <FolderInfo folder={{name:'. .',type:'folder'}} setPathArray={setPathArray}/>}
                         {!isFileScreen.isFile && files.folders.map((folder,i)=><FolderInfo key={i}  folder={folder} setPathArray={setPathArray}/>)}
                         {!isFileScreen.isFile && files.files.map((file,i)=><FileInfo showFile={showFile} key={i}  file={file}/>)}
-                        {/*{isFileScreen.isFile &&*/}
-                        {/*    <FileViewer file={isFileScreen.file} setIsFileScreen={setIsFileScreen}/>*/}
-                        {/*}*/}
+                        {isFileScreen.isFile &&
+                            <FileViewer pathArray={pathArray} file={isFileScreen.file} setIsFileScreen={setIsFileScreen}/>
+                        }
                     </div>
                 </div>
             </div>

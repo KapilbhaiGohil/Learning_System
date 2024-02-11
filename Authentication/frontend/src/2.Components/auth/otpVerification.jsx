@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { OtpInput } from "./basicComponent";
 import { useOutletContext } from "react-router-dom";
 import { useState } from "react";
-
+const url = "http://localhost:8000"
 export default function OtpVerification() {
     const [user,email] = useOutletContext();
     const [otpError,setOtpError] = useState({msg:''})
@@ -15,7 +15,7 @@ export default function OtpVerification() {
         if(otp.length !==6 || otp.includes(' ')){
             setOtpError({msg:'Pls fill out all the digits before submitting'});
         }else{
-            const res = await fetch('/auth/signUp',{
+            const res = await fetch(url+'/auth/signUp',{
                 method:"POST",
                 headers:{
                     "Content-type":"application/json"

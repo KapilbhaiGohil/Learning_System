@@ -101,7 +101,6 @@ export function CreateMaterialForm({setScreen,setMaterials}){
     }, []);
     const createNewMaterial = async(e)=>{
         e.preventDefault();
-        console.log(e);
         const {res,data}=await createMaterial({name:e.target.name.value,desc:e.target.desc.value});
         if(res.ok){
             setScreen({msg:'',data:''});

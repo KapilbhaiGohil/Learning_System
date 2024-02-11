@@ -4,6 +4,8 @@ import uimg from "../../Assets/user.png"
 import pimg from "../../Assets/password.png"
 import { useState } from "react"
 import {$err} from "../../3.Styles/globle.js"
+import {Cookies} from "react-cookie";
+const url = "http://localhost:8000";
 export default function Login(){
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('')
@@ -24,19 +26,22 @@ export default function Login(){
     const signin = async function (e){
         e.preventDefault();
         setError({msg:'',field:''})
-        const res = await fetch('/auth/signIn',{
+        const res = await fetch(url+'/auth/signIn',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json",
             },
             body:JSON.stringify({email:email,password:password}),
         });
+        const data = await res.json();
         if(res.ok){
+            const cookies = new Cookies();
+            cookies.set('token',`${data.token}`,{maxAge:300 * 60 * 60 * 1000});
             // navigate("/home");
             //temp solution
             window.location.replace('http://localhost:3000/home');
         }else{
-            const data = await res.json();
+
             setError({msg:data.msg,field:data.field})
         }
     }

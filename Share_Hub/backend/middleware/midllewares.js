@@ -6,7 +6,7 @@ import fs from "fs";
 const authDomain = config.authDomain
 
 export const getUser = async (req,res,next)=>{
-    const token = req.cookies.token;
+    const token = req.body.token;
     const authRes = await fetch(authDomain+'/user/getUserByCookie',{
         method:"POST",
         headers:{

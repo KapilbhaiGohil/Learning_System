@@ -87,8 +87,7 @@ authRouter.post('/signIn',async(req,res)=>{
             return res.status(422).send({msg:"Password didn't match with the one that you provided in the past.",field:"password"});
         }
         const token = jsonwebtoken.sign({_id:u._id},process.env.JSONKEY,{expiresIn: '300h'});
-        res.cookie('token',token,{httpOnly:true,maxAge:300 * 60 * 60 * 1000});
-        return res.status(200).send({u});
+        return res.status(200).send({u,token});
     }catch (error) {
         console.error(error);
         return res.status(500).send({ msg: "Internal server error",error });

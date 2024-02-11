@@ -2,11 +2,11 @@ import express from "express";
 import {mongoose} from "../Database/conn.js";
 import User from "../Models/User.js"
 import {Material} from "../Models/Material.js";
-const MaterialRouter = express.Router()
-import {getUser, upload, uploadMultipleFiles,} from "../middleware/midllewares.js";
-import {listFilesAndDirs, uploadFile, uploadFiles} from "../Utils/fileFunctions.js";
+import {getUser, upload,} from "../middleware/midllewares.js";
+import {listFilesAndDirs, uploadFile,} from "../Utils/fileFunctions.js";
 import fs from "fs";
 import bodyParser from 'body-parser';
+const MaterialRouter = express.Router()
 MaterialRouter.use(express.json())
 MaterialRouter.use(bodyParser.json())
 
@@ -163,6 +163,7 @@ MaterialRouter.post('/getFilesList',getUser,async(req,res)=>{
         return res.status(500).send({msg:e.toString()})
     }
 })
+
 export {MaterialRouter};
 
 

@@ -20,7 +20,7 @@ export default function Home(){
                 setMaterials(data);
             }else{
                 if(data.field==='token'){
-                    window.location.replace('http://localhost:3001/auth');
+                    // window.location.replace('http://localhost:3001/auth');
                 }
                 setError({msg:data.msg});
             }

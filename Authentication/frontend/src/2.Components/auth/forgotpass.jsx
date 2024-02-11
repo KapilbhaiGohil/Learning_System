@@ -3,7 +3,7 @@ import uimg from "../../Assets/user.png"
 import pimg from "../../Assets/password.png"
 import {   useNavigate,Outlet, useOutlet, Link, useOutletContext } from "react-router-dom";
 import { useState } from "react";
-
+const url = "http://localhost:8000";
 export default function ForgotPassword(){
     const navigate = useNavigate();
     const [email,setEmail] = useState('');
@@ -28,7 +28,7 @@ export default function ForgotPassword(){
         if(e.target.confirmPass.value !== e.target.password.value){
             setError({msg:'your password and re-entered password don\'t match.',field:'password'})
         }else{
-            const res = await fetch("/auth/forgot-pass",{
+            const res = await fetch(url+"/auth/forgot-pass",{
                 method:"POST",
                 headers:{
                     "Content-Type":"application/json",
