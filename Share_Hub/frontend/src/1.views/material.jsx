@@ -43,7 +43,7 @@ export default function Material(){
                         }
                     }
                 }
-                const {res,data} = await getFilesList(path);
+                const {res,data} = await getFilesList(path,material._id);
                 if(res.ok){
                     setFiles({files:data.files,folders:data.folders})
                     item.name = pathArray[pathArray.length-1].name

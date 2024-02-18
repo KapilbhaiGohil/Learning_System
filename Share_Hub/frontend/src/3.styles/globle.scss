@@ -26,7 +26,11 @@ a{
         border-bottom: 1px solid $blueColor;
     }
 }
-
+button:disabled{
+    pointer-events: none;
+    cursor: not-allowed;
+    background: $borderColor;
+}
 input[type="file"]{
     width: 7rem;
     color: black;

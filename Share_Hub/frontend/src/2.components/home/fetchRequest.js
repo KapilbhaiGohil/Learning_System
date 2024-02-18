@@ -64,3 +64,49 @@ export const removeLikeMaterial=async (materialId)=>{
         console.log(e);
     }
 }
+export const commentMaterial=async (materialId,msg)=>{
+    try{
+        const res = await fetch(url+'/material/addComment',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({materialId,token,msg})
+        });
+        const data = await res.json();
+        return {res,data};
+    }catch (e) {
+        console.log(e);
+    }
+}
+export const getComments = async (materialId)=>{
+    try{
+        const res = await fetch(url+'/material/getComments',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({materialId,token})
+        });
+        const data = await res.json();
+        return {res,data};
+    }catch (e) {
+        console.log(e);
+    }
+}
+
+export const joinMaterialRequest = async (materialId)=>{
+    try{
+        const res = await fetch(url+'/material/addMaterial',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({materialId,token})
+        });
+        const data = await res.json();
+        return {res,data};
+    }catch (e) {
+        console.log(e);
+    }
+}

@@ -14,7 +14,7 @@ const commentSchema = new mongoose.Schema(
         by:{type:mongoose.Schema.Types.ObjectId,required:true,ref:'User'},
         likes:{type:Number,default:0},
         disLikes:{type:Number,default:0},
-        comment:{type:String,required:true}
+        comment:{type:String,required:true},
     },
     {
         timestamps:true

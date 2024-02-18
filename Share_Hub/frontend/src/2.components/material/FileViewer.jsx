@@ -4,7 +4,7 @@ import hljs from 'highlight.js'
 import 'highlight.js/styles/vs2015.css'
 export default function FileViewer({file,setIsFileScreen,pathArray}){
     let ext = file.name.split('.').pop().toLowerCase();
-    let rawFileExt = ['c','cpp','java','txt','c++','js'];
+    let rawFileExt = ['c','cpp','java','txt','c++','js','in','out','scss','json'];
 
     useEffect(() => {
         if(pathArray[pathArray.length-1].type==='folder'){
@@ -43,11 +43,9 @@ export default function FileViewer({file,setIsFileScreen,pathArray}){
                         <img src={file.url} alt={'error while getting data'}/>
                 }
                 {
-
                     rawFileExt.includes(ext) &&
                     <>
                         <pre id={'pretag'}>
-
                         </pre>
                     </>
                 }

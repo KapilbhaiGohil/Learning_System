@@ -1,7 +1,7 @@
 import express from "express";
 import {mongoose} from "../Database/conn.js";
 import User from "../Models/User.js"
-import {Material} from "../Models/Material.js";
+import {Material,Comment} from "../Models/Material.js";
 import {getUser, upload,} from "../middleware/midllewares.js";
 import {listFilesAndDirs, uploadFile,} from "../Utils/fileFunctions.js";
 import fs from "fs";
@@ -153,8 +153,9 @@ MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=
 
 MaterialRouter.post('/getFilesList',getUser,async(req,res)=>{
     try{
-          const {activeUser,path} = req.body;
-          let cloudPath = activeUser._id+"/"+path+"/";
+          const {activeUser,path,materialId} = req.body;
+          const material = await Material.findById(materialId);
+          let cloudPath = material.creator.toString()+"/"+path+"/";
           const {files,folders} = await listFilesAndDirs(cloudPath);
           let normalPath = path.slice(25,path.length);
           return res.status(200).json({files,prefix:normalPath,folders});
@@ -164,6 +165,52 @@ MaterialRouter.post('/getFilesList',getUser,async(req,res)=>{
     }
 })
 
+MaterialRouter.post('/addComment',getUser,async(req,res)=>{
+    try{
+        const {materialId,activeUser,msg}=req.body;
+        const material = await Material.findById(materialId);
+        if(!material)return res.status(401).send({msg:"Invalid comment request for non existant material ."});
+        const newComment = await new Comment({comment:msg,by:activeUser._id});
+        await newComment.save();
+        material.comments.push(newComment._id);
+        await material.save();
+        return res.status(200).json(material);
+    }catch (e){
+        console.log(e);
+        if(e.kind === 'ObjectId'){
+            return res.status(400).send({msg:e.message});
+        }
+        return res.status(500).send({msg:e.message});
+    }
+})
+MaterialRouter.post('/getComments',getUser,async(req,res)=>{
+    try{
+        const{materialId} = req.body;
+        const material = await Material.findById(materialId);
+        const cids = material.comments;
+        const comments = await Comment.find({_id:{$in:cids}}).populate('by');
+        return res.status(200).json(comments);
+    }catch (e){
+        console.log(e);
+        return res.status(500).send({msg:e.message});
+    }
+})
+MaterialRouter.post('/likeComment',getUser,async(req,res)=>{
+    try{
+
+    }catch (e){
+        console.log(e);
+        return res.status(500).send({msg:e.message});
+    }
+})
+MaterialRouter.post('/dislikeComment',getUser,async(req,res)=>{
+    try{
+
+    }catch (e){
+        console.log(e);
+        return res.status(500).send({msg:e.message});
+    }
+})
 export {MaterialRouter};
 
 

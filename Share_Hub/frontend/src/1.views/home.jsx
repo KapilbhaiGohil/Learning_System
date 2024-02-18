@@ -20,15 +20,15 @@ export default function Home(){
                 setMaterials(data);
             }else{
                 if(data.field==='token'){
-                    // window.location.replace('http://localhost:3001/auth');
+                    window.location.replace('http://localhost:3001/auth');
                 }
                 setError({msg:data.msg});
             }
         }
         func();
     },[])
-    const commentOnclick=(material)=>{
-        setScreen({msg:"comment",data:material});
+    const commentOnclick=(material,index)=>{
+        setScreen({msg:"comment",data:material,index,updateMaterial});
     }
     const getMaterialClick=()=>{
         setScreen({msg:'getMaterial',data:""});
@@ -65,7 +65,7 @@ export default function Home(){
                     <div><button onClick={getMaterialClick}>Get material</button></div>
                 </div>
                 <div className={'home-screens'}>
-                    {screen.msg==='comment' && <CommentScreen setScreen={setScreen}/>}
+                    {screen.msg==='comment' && <CommentScreen commentOnClick={commentOnclick} screen={screen} setScreen={setScreen}/>}
                     {screen.msg==='createMaterial' && <CreateMaterialForm setMaterials={setMaterials} setScreen={setScreen}/>}
                     {screen.msg==='getMaterial' && <GetMaterialForm setScreen={setScreen}/>}
                 </div>

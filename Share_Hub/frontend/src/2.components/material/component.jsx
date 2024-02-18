@@ -5,10 +5,11 @@ import {
     CloudUploadOutlined,
     ChevronRightRounded, AddOutlined, MoreHorizOutlined
 } from '@mui/icons-material';
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import CloseIcon from '@mui/icons-material/Close';
 import {getFilesList, getPathAsString, uploadFile} from "./fetchRequest";
 import {Cookies} from "react-cookie";
+import {Context} from "../../Context";
 
 export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPathArray,folder,prefix,material,depth}){
     const [isOpen,setIsOpen] = useState(false);
@@ -32,7 +33,7 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPath
                 setIsOpen(true);
                 console.log("buffered data for ",folder)
             }else{
-                const {res,data} = await getFilesList(material._id+"/"+prefix);
+                const {res,data} = await getFilesList(material._id+"/"+prefix,material._id);
                 if(res.ok){
                     setFiles(data);
                     item.name = destFolder.name
@@ -91,7 +92,7 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPath
                         <ChevronRightRounded style={isOpen ? {transform:"rotate(90deg)"} :{}} />
                     </div>
                     <div className={'folder-structure-folder'}>
-                        {isOpen ?<FolderOpenRounded/> :<FolderRounded/>}
+                        {isOpen ?<FolderOpenRounded/> : <FolderRounded/>}
                         <div className={'folder-structure-name'}>{folder.name}</div>
                     </div>
                 </div>
@@ -146,6 +147,7 @@ export function FileInfo({file,showFile}){
 export function Path({material,pathArray,setPathArray}){
     const [expand,setExpand] = useState(false);
     const [uploadScreen,setUploadScreen] = useState(false);
+    const {activeUser} = useContext(Context);
     const addFileClick=(e)=>{
         setExpand(!expand);
     }
@@ -173,10 +175,13 @@ export function Path({material,pathArray,setPathArray}){
                     </ol>
                 </div>
                 <div className={'path-right'}>
-                    <div onClick={addFileClick} className={'path-add-file'}>
-                        <button>Add file</button>
-                        <AddOutlined/>
-                    </div>
+                    {activeUser._id === material.creator &&
+                        <div onClick={addFileClick} className={'path-add-file'}>
+                            <button>Add file</button>
+                            <AddOutlined/>
+                        </div>
+                    }
+
                     {expand && <div className={'path-add-file-extension'} id={'file-extension'}>
                         <div onClick={uploadFileClick}>
                             <CloudUploadOutlined/>
@@ -267,7 +272,7 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
             filesData.append('initialPath',initialPath);
             filesData.append('token',token);
             if(files[i].manualPath)filesData.append('manualPath',files[i].manualPath);
-            const {res,data} = await uploadFile(filesData);
+            await uploadFile(filesData);
         }
         setPathArray((prev)=>[...prev]);
         uploadFileClick();

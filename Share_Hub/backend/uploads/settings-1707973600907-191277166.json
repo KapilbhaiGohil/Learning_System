@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.JAVA": "java",
+        "algorithm": "cpp"
+    }
+}

@@ -24,8 +24,8 @@ export function ContextProvider({children}){
             if(res.ok){
                 setActiveUser(data);
             }else{
-                window.alert('failed')
-                // window.location.replace('http://localhost:3001/auth')
+                // window.alert('failed')
+                window.location.replace('http://localhost:3001/auth')
             }
         }
         func();

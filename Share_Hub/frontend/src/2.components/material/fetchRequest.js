@@ -31,14 +31,14 @@ export const uploadFile=async (formData)=>{
         console.log(e);
     }
 }
-export const getFilesList=async (path)=>{
+export const getFilesList=async (path,materialId)=>{
     try{
         const res = await fetch(url+'/material/getFilesList',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
             },
-            body:JSON.stringify({path,token})
+            body:JSON.stringify({path,token,materialId})
         });
         const data = await res.json();
         return {res,data};

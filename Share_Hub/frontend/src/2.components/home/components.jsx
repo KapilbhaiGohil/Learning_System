@@ -5,13 +5,21 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import ReplyOutlinedIcon from '@mui/icons-material/ReplyOutlined';
 import logo from '../../5.assets/demo.jpg'
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import AnnouncementIcon from '@mui/icons-material/Announcement';
 import {
     CloseOutlined,
     SentimentSatisfiedOutlined,
     ThumbDownOutlined,
     ThumbUpOutlined
 } from "@mui/icons-material";
-import {createMaterial, likeMaterial, removeLikeMaterial} from "./fetchRequest";
+import {
+    commentMaterial,
+    createMaterial,
+    getComments,
+    joinMaterialRequest,
+    likeMaterial,
+    removeLikeMaterial
+} from "./fetchRequest";
 import {useContext, useEffect, useRef, useState} from "react";
 import {Context} from "../../Context";
 import {useNavigate} from "react-router-dom";
@@ -19,6 +27,7 @@ import {useNavigate} from "react-router-dom";
 export function MaterialCard({commentOnclick,updateMaterial,index,material}){
     const {activeUser} = useContext(Context);
     const [like,setLike]=useState(false);
+    const expandOptionsRef = useRef();
     const navigate = useNavigate();
     useEffect(() => {
         for (let i = 0; i < material.likes.length; i++) {
@@ -43,6 +52,26 @@ export function MaterialCard({commentOnclick,updateMaterial,index,material}){
     const materialClick=(e)=>{
         navigate(`/material/${material._id}`);
     }
+    const expandOptions = (e)=>{
+        let ele = expandOptionsRef.current;
+        if(ele.style.display === 'block'){
+            ele.style.display = 'none'
+        }else{
+            ele.style.display = 'block'
+        }
+    }
+    const optionClicked=(option,e)=>{
+        switch (option){
+            case 'delete':
+                
+                break;
+            case 'download':
+
+                break;
+            default:
+                break;
+        }
+    }
     return(
         <>
             <div className={'material-card-outer'}>
@@ -52,10 +81,14 @@ export function MaterialCard({commentOnclick,updateMaterial,index,material}){
                     </div>
                     <div className={'material-card-heading-right'}>
                         <div className={'material-card-heading-right-info'}>
-                            Owner
+                            {material.creator === activeUser._id ? 'Owner' : 'Shared'}
                         </div>
-                        <div className={'material-card-heading-right-options'}>
+                        <div onClick={expandOptions} className={'material-card-heading-right-options'}>
                             <MoreVertIcon />
+                            <div ref={expandOptionsRef}  className={'material-card-heading-right-options-expand'}>
+                                <div onClick={(e)=>optionClicked('download',e)}>Download</div>
+                                <div onClick={(e)=>optionClicked('delete',e)}>Delete</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -64,9 +97,9 @@ export function MaterialCard({commentOnclick,updateMaterial,index,material}){
                 </div>
                 <div className={'material-card-options'}>
                     <div className={'material-card-options-right'}>
-                        <div onClick={commentOnclick}>
+                        <div onClick={(e)=>commentOnclick(material,index)}>
                             <CommentOutlinedIcon/>
-                            <span>235</span>
+                            <span>{material.comments.length}</span>
                         </div>
                         <div onClick={likeFunction}>
                             {like ? <FavoriteIcon style={{color:"red"}}/> : <FavoriteBorderOutlinedIcon /> }
@@ -150,6 +183,7 @@ export function CreateMaterialForm({setScreen,setMaterials}){
     )
 }
 export function GetMaterialForm({setScreen}){
+    const navigate = useNavigate();
     const closeScreen = ()=>{
         let ele = document.getElementById('get-material');
         ele.style.transition="all 0.4s";
@@ -162,6 +196,13 @@ export function GetMaterialForm({setScreen}){
         ele.style.top="100%";
         setTimeout(()=>{ ele.style.top = "0";},10);
     }, []);
+    const joinMaterial=async(e)=>{
+        const {res,data} = await joinMaterialRequest(document.getElementById('code').value);
+        if(res.ok){
+            closeScreen();
+            navigate('');
+        }
+    }
     return(
         <>
             <div id={'get-material'} className={'get-material'}>
@@ -174,11 +215,11 @@ export function GetMaterialForm({setScreen}){
                             <p>Enter a material code</p>
                         </div>
                         <div>
-                            <input/>
+                            <input id={'code'} />
                         </div>
                         <div className={'get-material-buttons'}>
                             <button className={'close-btn'} onClick={closeScreen}>Close</button>
-                            <button>Find</button>
+                            <button onClick={joinMaterial}>Find</button>
                         </div>
                     </div>
                 </div>
@@ -187,33 +228,30 @@ export function GetMaterialForm({setScreen}){
     )
 }
 
-export function Comment({material}){
+export function Comment({comment,ref}){
     return(
         <>
-            <div className={'comment-outer'}>
+            <div ref={ref} className={'comment-outer'}>
                 <div className={'comment-heading'}>
                     <div className={'comment-user'}>
-                        <div><img src={logo} width={'30px'}></img></div>
-                        <div>Kapilbhaigohil</div>
-                        <div>2 minutes ago</div>
+                        <img src={logo} width={'30px'}></img>
+                        <p>{comment.by.email}</p>
+                        {/*<p>{'Kapilbhaigohil'}</p>*/}
+                        {/*<div>{comment.updatedAt}</div>*/}
                     </div>
                 </div>
                 <div className={'comment-body'}>
                     <div className={'comment-desc'}>
-                        <p>hello this should be illegeal due to the war.</p>
+                        <p>{comment.comment}</p>
                     </div>
                     <div className={'comment-info'}>
                         <div>
                             <ThumbUpOutlined />
-                            <div></div>
+                            <div style={{height:"1.6rem"}}>{comment.likes}</div>
                         </div>
-                        <div>
+                        <div >
                             <ThumbDownOutlined/>
-                            <div>20</div>
-                        </div>
-                        <div>
-                            <CommentOutlinedIcon />
-                            <div>Replay</div>
+                            <div style={{height:"1.6rem"}}>{comment.disLikes}</div>
                         </div>
                     </div>
                 </div>
@@ -221,7 +259,19 @@ export function Comment({material}){
         </>
     )
 }
-export function CommentScreen({setScreen}){
+export function CommentScreen({setScreen,screen,commentOnClick}){
+    const [comments,setComments] = useState([]);
+    const [msg,setMsg] = useState('');
+    const last = useRef();
+    useEffect(() => {
+        async function helper(){
+            const {res,data} = await getComments(screen.data._id);
+            if(res.ok){
+                setComments(data);
+            }
+        }
+        helper();
+    }, [screen]);
     const closeScreen = ()=>{
         let ele = document.getElementById('comment-screen');
         ele.style.transition="all 0.4s";
@@ -230,9 +280,29 @@ export function CommentScreen({setScreen}){
     }
     useEffect(() => {
         let ele = document.getElementById('comment-screen');
+        const temp = last.current;
         ele.style.transition="all 0.4s";
-        setTimeout(()=>{ ele.style.top = "0";},10);
-    }, []);
+        setTimeout(()=>{
+            ele.style.top = "0";
+            setTimeout(() => {
+                temp.scrollIntoView({ behavior: 'smooth' }); // You might want to use 'smooth' behavior for a smooth scroll
+            }, 400);
+        },10);
+    }, [screen]);
+    const msgChange = (e)=>{
+        setMsg(e.target.value);
+    }
+    const msgSend = async(e)=>{
+        const {res,data} = await commentMaterial(screen.data._id,msg);
+        if(res.ok){
+            screen.updateMaterial(data,screen.index);
+            commentOnClick(data,screen.index);
+            setMsg('');
+
+        }else{
+
+        }
+    }
     return(
         <>
             <div id={'comment-screen'} className={'comment-screen'}>
@@ -242,16 +312,18 @@ export function CommentScreen({setScreen}){
                         <div><CloseOutlined onClick={closeScreen}/></div>
                     </div>
                     <div className={'comment-screen-msg'}>
-                        <Comment/>
-                        <Comment/>
-                        <Comment/>
-                        <Comment/>
-                        <Comment/>
+                        {comments.length > 0 ? comments.map((c,i)=><Comment key={i}  comment={c}/>) :
+                            <div className={'comment-screen-nomsg'}>
+                                <AnnouncementIcon/>
+                                <span>No comment till now.</span>
+                            </div>
+                        }
+                        <div ref={last}></div>
                     </div>
                     <div className={'comment-screen-input'}>
                         <div className={'comment-screen-input-emoji'}><SentimentSatisfiedOutlined/></div>
-                        <div className={'comment-screen-input-input'}><input/></div>
-                        <div className={'comment-screen-input-button'}><button>Send</button></div>
+                        <div className={'comment-screen-input-input'}><input onChange={msgChange} value={msg} placeholder={'write your comment here...'}/></div>
+                        <div className={'comment-screen-input-button'}><button disabled={msg.length <= 0} onClick={msgSend}>Send</button></div>
                     </div>
                 </div>
             </div>
