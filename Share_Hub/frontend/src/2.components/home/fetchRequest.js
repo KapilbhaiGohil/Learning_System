@@ -95,14 +95,14 @@ export const getComments = async (materialId)=>{
     }
 }
 
-export const joinMaterialRequest = async (materialId)=>{
+export const joinMaterialRequest = async (materialCode)=>{
     try{
         const res = await fetch(url+'/material/addMaterial',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
             },
-            body:JSON.stringify({materialId,token})
+            body:JSON.stringify({materialCode,token})
         });
         const data = await res.json();
         return {res,data};

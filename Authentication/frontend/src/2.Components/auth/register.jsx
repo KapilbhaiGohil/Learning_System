@@ -47,7 +47,7 @@ export default function Register(){
             <form onSubmit={register}>
                 {error.msg.length>0 && error.field!=='email'&& <p style={{color:$err,marginTop:"0.5rem",fontSize:"0.8rem"}}>{error.msg}</p>}
                 <div>
-                    <SimpleInputWithImage value={user.name} img={uimg} required={true} onchange={userChange} name={"name"} type="text" placeholder="Name"  />
+                    <SimpleInputWithImage value={user.name} img={uimg} required={true} onchange={userChange} name={"name"} type="text" placeholder="Full name"  />
                 </div>
                 <div>
                     <SimpleInputWithImage value={user.email} img={eimg} errmsg={error.field==='email' && error.msg} inputContainerClass={error.field==='email' && 'err-input-container'}  onchange={emailChange} required={true} name={"email"} type={'email'} placeholder={"Enter email"}  />

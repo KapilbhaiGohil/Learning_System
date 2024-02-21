@@ -182,8 +182,16 @@ export function CreateMaterialForm({setScreen,setMaterials}){
         </>
     )
 }
-export function GetMaterialForm({setScreen}){
+export function GetMaterialForm({setScreen,setMaterials}){
+    const [error,setError]=useState({msg:'',field:''})
+    const [code,setCode] = useState();
     const navigate = useNavigate();
+    const codeChange=(e)=>{
+        setCode(e.target.value);
+        if(error.msg.length>0 && error.field==='code'){
+            setError({msg:'',field:''});
+        }
+    }
     const closeScreen = ()=>{
         let ele = document.getElementById('get-material');
         ele.style.transition="all 0.4s";
@@ -197,10 +205,17 @@ export function GetMaterialForm({setScreen}){
         setTimeout(()=>{ ele.style.top = "0";},10);
     }, []);
     const joinMaterial=async(e)=>{
-        const {res,data} = await joinMaterialRequest(document.getElementById('code').value);
-        if(res.ok){
-            closeScreen();
-            navigate('');
+        const digits = /\d/g,upperCase=/[A-Z]/
+        if(digits.test(code) || upperCase.test(code) || code.length!==8){
+            setError({msg:"code should contains 8-digit lowercase english letters only.",field:"code"})
+        }else{
+            const {res,data} = await joinMaterialRequest(code);
+            if(res.ok){
+                closeScreen();
+                setMaterials(data);
+            }else{
+                setError({msg:data.msg,field:data.field});
+            }
         }
     }
     return(
@@ -212,10 +227,11 @@ export function GetMaterialForm({setScreen}){
                     </div>
                     <div className={'get-material-body'}>
                         <div>
-                            <p>Enter a material code</p>
+                            <p>Enter a 8-digit unique material code</p>
+                            {error.msg.length>0 && error.field==='code' && <p className={'error-msg'}>{error.msg}</p>}
                         </div>
                         <div>
-                            <input id={'code'} />
+                            <input id={'code'} required={true} onChange={codeChange}/>
                         </div>
                         <div className={'get-material-buttons'}>
                             <button className={'close-btn'} onClick={closeScreen}>Close</button>
@@ -234,8 +250,8 @@ export function Comment({comment,ref}){
             <div ref={ref} className={'comment-outer'}>
                 <div className={'comment-heading'}>
                     <div className={'comment-user'}>
-                        <img src={logo} width={'30px'}></img>
-                        <p>{comment.by.email}</p>
+                        <img src={comment.profilePic} width={'30px'}></img>
+                        <p>{comment.by.name}</p>
                         {/*<p>{'Kapilbhaigohil'}</p>*/}
                         {/*<div>{comment.updatedAt}</div>*/}
                     </div>

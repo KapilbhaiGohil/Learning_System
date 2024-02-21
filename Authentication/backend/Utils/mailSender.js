@@ -1,5 +1,4 @@
-const nodemailer = require('nodemailer')
-
+import nodemailer from 'nodemailer'
 const mailSender = async(email,title,body)=>{
         let transporter;
         let isDevelopment = process.env.MODE==='development'
@@ -32,4 +31,4 @@ const mailSender = async(email,title,body)=>{
         console.log(info)
         return info;
 }
-module.exports = mailSender
+export {mailSender}

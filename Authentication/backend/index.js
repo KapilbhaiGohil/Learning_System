@@ -1,13 +1,13 @@
-const express = require('express')
-const dotenv = require('dotenv')
+import express from 'express';
+import dotenv from 'dotenv';
+import {connectDB} from './Database/conn.js';
+import {authRouter} from './Routers/authRouter.js';
+import {userRouter} from './Routers/userRouter.js';
+import cors from 'cors';
+import cookieParser from 'cookie-parser'
 dotenv.config({path:"../../config.env"})
 const app = express();
-const connectDB = require('./Database/conn')
 connectDB(true);
-const authRouter = require('./Routers/authRouter')
-const cookieParser = require("cookie-parser");
-const userRouter = require('./Routers/userRouter');
-const cors = require('cors');
 //cookie parser
 app.use(cors())
 app.use(cookieParser());

@@ -1,10 +1,10 @@
-const cookieParser = require('cookie-parser');
-const express = require('express')
+import express from 'express'
+import cookieParser from "cookie-parser";
+import {User} from '../Models/User.js'
+import jsonwebtoken from "jsonwebtoken";
 const userRouter = express.Router();
 userRouter.use(express.json())
 userRouter.use(cookieParser())
-const User = require('../Models/User')
-const jsonwebtoken = require('jsonwebtoken')
 
 userRouter.post('/getUserByCookie',async(req,res)=>{
     const {token} = req.body
@@ -20,4 +20,4 @@ userRouter.post('/getUserByCookie',async(req,res)=>{
         return res.status(401).send({msg:"Unauthorized request - Invalid Token"})
     }
 })
-module.exports = userRouter;
+export {userRouter};

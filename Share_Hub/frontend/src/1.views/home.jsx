@@ -67,7 +67,7 @@ export default function Home(){
                 <div className={'home-screens'}>
                     {screen.msg==='comment' && <CommentScreen commentOnClick={commentOnclick} screen={screen} setScreen={setScreen}/>}
                     {screen.msg==='createMaterial' && <CreateMaterialForm setMaterials={setMaterials} setScreen={setScreen}/>}
-                    {screen.msg==='getMaterial' && <GetMaterialForm setScreen={setScreen}/>}
+                    {screen.msg==='getMaterial' && <GetMaterialForm setMaterials={setMaterials} setScreen={setScreen}/>}
                 </div>
             </div>
 

@@ -3,9 +3,11 @@ import {mongoose} from "../Database/conn.js";
 import User from "../Models/User.js"
 import {Material,Comment} from "../Models/Material.js";
 import {getUser, upload,} from "../middleware/midllewares.js";
-import {listFilesAndDirs, uploadFile,} from "../Utils/fileFunctions.js";
+import {getDownloadUrlPath, listFilesAndDirs, uploadFile,} from "../Utils/fileFunctions.js";
 import fs from "fs";
 import bodyParser from 'body-parser';
+import {firebaseConfig} from "../Utils/firebaseConfig.js";
+import otpGenerator from "otp-generator";
 const MaterialRouter = express.Router()
 MaterialRouter.use(express.json())
 MaterialRouter.use(bodyParser.json())
@@ -17,10 +19,14 @@ MaterialRouter.post('/create',getUser,async(req,res)=>{
         const {activeUser,name,desc} = req.body;
         let user = await User.findById(activeUser._id);
         if(!user){
-            user = await new User({_id:activeUser._id,email:activeUser.email})
+            user = await new User({_id:activeUser._id,email:activeUser.email,name:activeUser.name})
             await user.save();
         }
-        let material = await new Material({name,desc,creator:user._id});
+        let  code = otpGenerator.generate(8, { digits: false, upperCaseAlphabets: false,specialChars: false});
+        while(await Material.findOne({code})){
+            code = otpGenerator.generate(8, { digits: false, upperCaseAlphabets: false,specialChars: false});
+        }
+        let material = await new Material({name,desc,creator:user._id,code});
         await material.save();
         user.materials.push(material._id);
         user.save();
@@ -78,17 +84,16 @@ MaterialRouter.post('/addMaterial',getUser,async(req,res)=>{
     const session = await mongoose.startSession();
     try{
         await session.startTransaction();
-        const {activeUser,materialId} = req.body;
+        const {activeUser,materialCode} = req.body;
         let user = await User.findById(activeUser._id);
         if(!user){
-            user = await new User({_id:activeUser._id,email:activeUser.email})
+            user = await new User({_id:activeUser._id,email:activeUser.email,name:activeUser.name})
             await user.save();
         }
-        let material = await Material.findById(materialId);
-        if(!material)return res.status(400).send({msg:"Pls enter the correct code for the material."})
+        let material = await Material.findOne({code:materialCode});
+        if(!material)return res.status(400).send({msg:`No material found with the code ${materialCode}.`,field:'code'})
         let alreadyHas = await User.find({_id:user._id,materials:material._id});
-        console.log(alreadyHas);
-        if(alreadyHas.length>0)return res.status(409).send({msg:"Material is already in your list."})
+        if(alreadyHas.length>0)return res.status(409).send({msg:"Material is already in your list.",field:'code'})
         user.materials.push(material._id);
         user.save();
         await session.commitTransaction();
@@ -96,11 +101,11 @@ MaterialRouter.post('/addMaterial',getUser,async(req,res)=>{
         for (let i = 0; i < user.materials.length; i++) {
             materials.push(await Material.findById(user.materials[i].toString()));
         }
-        return res.status(200).send({msg:"Successfully created new material.",materials});
+        return res.status(200).json(materials);
     }catch (e) {
         await session.abortTransaction();
         console.log(e);
-        return res.status(500).send({msg:e.toString()})
+        return res.status(500).send({msg:e.toString(),field:'code'})
     }finally{
         await session.endSession();
     }
@@ -138,12 +143,15 @@ MaterialRouter.post('/getMaterialById',getUser,async(req,res)=>{
 
 MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=>{
     try{
+        console.log("request received for file uploading....");
         const {activeUser,initialPath,manualPath} = req.body;
         let cloudPath = activeUser._id+'/'+initialPath+'/';
         if(manualPath)cloudPath+=manualPath+'/';
         console.log(manualPath,cloudPath)
         await uploadFile(req.file,cloudPath);
-        fs.unlinkSync(req.file.path);
+        fs.unlink(req.file.path,(err)=>{
+            console.log(err);
+        });
         return res.status(200).send({msg:"file uploaded successfully"});
     }catch (e) {
         console.log(e);
@@ -187,8 +195,14 @@ MaterialRouter.post('/getComments',getUser,async(req,res)=>{
     try{
         const{materialId} = req.body;
         const material = await Material.findById(materialId);
+        if(!material)return res.status(400).send({msg:"Invalid material id."})
         const cids = material.comments;
-        const comments = await Comment.find({_id:{$in:cids}}).populate('by');
+        let comments = await Comment.find({_id:{$in:cids}}).populate('by').lean();
+        for (let i = 0; i < comments.length; i++) {
+            const profilePicPath = encodeURIComponent(`${comments[i].by._id}/profilePic.png`);
+            const profilePicUrl = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${profilePicPath}?alt=media`;
+            comments[i].profilePic = profilePicUrl;
+        }
         return res.status(200).json(comments);
     }catch (e){
         console.log(e);
@@ -197,6 +211,9 @@ MaterialRouter.post('/getComments',getUser,async(req,res)=>{
 })
 MaterialRouter.post('/likeComment',getUser,async(req,res)=>{
     try{
+        const{activeUser,commentId} = req.body;
+        const comment = await Comment.findById(commentId);
+        if(!comment)return res.status(400).send({msg:"Invalid comment id."});
 
     }catch (e){
         console.log(e);

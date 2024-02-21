@@ -41,7 +41,6 @@ export default function Login(){
             //temp solution
             window.location.replace('http://localhost:3000/home');
         }else{
-
             setError({msg:data.msg,field:data.field})
         }
     }

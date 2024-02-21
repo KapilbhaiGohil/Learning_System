@@ -20,6 +20,7 @@ export const getMaterialById=async (materialId)=>{
     }
 }
 export const uploadFile=async (formData)=>{
+    console.log(formData,"at the time of uploading")
     try{
         const res = await fetch(url+'/material/upload',{
             method:"POST",
@@ -28,7 +29,7 @@ export const uploadFile=async (formData)=>{
         const data = await res.json();
         return {res,data};
     }catch (e) {
-        console.log(e);
+        console.log("error while uploading file : ",e);
     }
 }
 export const getFilesList=async (path,materialId)=>{

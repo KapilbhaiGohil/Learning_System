@@ -1,4 +1,0 @@
-this folder is for the file upload
-file comes here
-upload to google drive
-file deletes from here

@@ -1,6 +1,5 @@
-const User = require('../Models/User')
-const jsonwebtoken = require('jsonwebtoken')
-
+import {User} from '../Models/User.js'
+import jsonwebtoken from 'jsonwebtoken'
 const authenticate = async function(req,res,next){
     const token = req.cookies.token;
     if(!token){
@@ -16,4 +15,4 @@ const authenticate = async function(req,res,next){
         return res.status(401).send({msg:"Unauthorized request - Invalid Token"})
     }
 }
-module.exports = authenticate;
+export {authenticate};

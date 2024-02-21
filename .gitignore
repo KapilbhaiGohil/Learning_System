@@ -25,4 +25,5 @@ yarn-error.log*
 
 .idea/
 *.env
+firebaseConfig.js
 Share_Hub/backend/Utils/firebaseConfig.js

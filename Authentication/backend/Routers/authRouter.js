@@ -1,10 +1,12 @@
-const express = require('express')
+import express from 'express';
+import {User} from '../Models/User.js';
+import bcrypt from 'bcrypt';
+import jsonwebtoken from 'jsonwebtoken';
+import {authenticate} from '../Middlewares/authenticate.js';
+import { Otp, generateAndSendOtp } from '../Models/Otp.js';
+import { generateAndUploadProfilePic } from '../Utils/uploadTasks.js';
+
 const authRouter = express.Router();
-const User = require('../Models/User')
-const bcrypt = require('bcrypt')
-const jsonwebtoken = require('jsonwebtoken')
-const authenticate = require('../Middlewares/authenticate')
-const [Otp,generateAndSendOtp] = require('../Models/Otp');
 authRouter.use(express.json())
 
 
@@ -23,13 +25,17 @@ authRouter.post('/signUp',async(req,res)=>{
                     await Otp.deleteOne({email});
                     const newUser =  await new User({name,email,password});
                     const isCreated = await newUser.save();
+                    const info = await generateAndUploadProfilePic(newUser);
+                    if(info.status === 'failed'){
+                        await User.deleteOne(newUser);
+                        return res.status(500).send({ msg: "Server error while uploading the user data"});
+                    }
                     if (isCreated) {
                         return res.status(200).send({ msg: "Successfully Saved User" });
                     }
                     return res.status(500).send({ msg: "Error while saving the user" });
                 }
             }
-            
         }else{
             const u = await User.findOne({email});
             if(u)return res.status(409).send({msg:"Account with the email "+email+" already exist.Please try different account.",field:'email'});
@@ -105,4 +111,4 @@ authRouter.post('/signOut',authenticate,(req,res)=>{
    res.clearCookie('token')
    return res.status(200).send({msg:"Successfully logged out"})
 });
-module.exports = authRouter
+export {authRouter}

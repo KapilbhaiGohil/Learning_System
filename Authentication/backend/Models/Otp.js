@@ -1,6 +1,7 @@
-const mongoose = require('mongoose')
-const mailSender = require('../Utils/mailSender')
-const otpGenerator = require("otp-generator");
+import mongoose from "mongoose";
+import {mailSender} from '../Utils/mailSender.js'
+import otpGenerator from 'otp-generator'
+
 const otpSchema = new mongoose.Schema(
     {
         email:{type:String,required:true},
@@ -117,4 +118,4 @@ const generateAndSendOtp = async function (email,res,purpose){
         return res.status(400).send({msg:'Failed to send otp'})
     }
 }
-module.exports = [Otp,generateAndSendOtp,style];
+export {Otp,generateAndSendOtp,style};

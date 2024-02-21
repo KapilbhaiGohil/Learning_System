@@ -1,13 +1,11 @@
-const mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
+import mongoose from 'mongoose'
+import bcrypt from 'bcrypt'
 
-const roleOptions = ['Admin','Student','Educator']
 const userSchema = new mongoose.Schema(
     {
         name:{type:String,required:true,trim:true},
         email:{type:String,required:true,unique:true,trim:true},
         password:{type:String,required:true},
-        role:{type:String,required:true,enum:roleOptions,default:'Student'},
     },
     {
         timestamps:true
@@ -17,7 +15,8 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save',async function(next){
     try{
         if(this.isModified('password')){
-            this.password = await bcrypt.hash(this.password,10)
+            const salt = await bcrypt.genSaltSync(10);
+            this.password = await bcrypt.hash(this.password,salt);
             next();
         }else{
             next();
@@ -29,4 +28,4 @@ userSchema.pre('save',async function(next){
 })
 //use mmodel
 const User = mongoose.model('User',userSchema);
-module.exports = User;
+export {User};

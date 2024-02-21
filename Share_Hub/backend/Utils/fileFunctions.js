@@ -3,23 +3,23 @@ import {deleteObject, getDownloadURL, getStorage, listAll, ref, uploadBytesResum
 import {initializeApp} from 'firebase/app'
 import fs from 'fs'
 import path from 'path'
+
 initializeApp(firebaseConfig);
 const storage = getStorage();
 
-export async function uploadFiles(files,cloudPath){
-    let urls = [];
-    for (let i = 0; i < files.length; i++) {
-        const fileBuffer = fs.readFileSync(files[i].path)
-        const storageRef = ref(storage,cloudPath+files[i].filename);
-        const uploadTask = await uploadBytesResumable(storageRef,fileBuffer,{contentType:files[i].mimetype})
-        urls.push(await getDownloadURL(storageRef));
-    }
-    return urls;
-}
 export async function uploadFile(file,cloudPath){
-    const fileBuffer = fs.readFileSync(file.path)
-    const storageRef = ref(storage,cloudPath+file.filename);
-    const uploadTask = await uploadBytesResumable(storageRef,fileBuffer,{contentType:file.mimetype})
+    try {
+        const fileBuffer = fs.readFileSync(file.path);
+        const storageRef = ref(storage, cloudPath + file.filename);
+        const uploadTaskSnapshot = await uploadBytesResumable(storageRef, fileBuffer, { contentType: file.mimetype });
+
+        console.log('Upload completed successfully');
+    } catch (error) {
+        console.error('Error uploading file:', error);
+    }
+}
+export async function getDownloadUrlPath(cloudPath){
+    return await getDownloadURL(ref(storage,cloudPath));
 }
 export async function deleteFolder(cloudPath){
     const storageRef = ref(storage,cloudPath);

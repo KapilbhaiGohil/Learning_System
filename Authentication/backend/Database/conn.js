@@ -1,6 +1,7 @@
-const mongoose = require('mongoose')
+import mongoose from "mongoose";
+import config from '../config.js'
 
-local_db_uri = process.env.AUTH_LOCAL_DB_URI
+let local_db_uri = config.authLocalDBUri
 
 const connectDB = async(isLocal)=>{
     if(isLocal){
@@ -9,4 +10,4 @@ const connectDB = async(isLocal)=>{
         }).catch((e)=>console.log(e));
     }
 }
-module.exports = connectDB;
+export {connectDB};

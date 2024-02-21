@@ -4,6 +4,7 @@ $blueColor:#3574d6;
 $borderColor:#373737;
 $fontColor:#dfdfdf;
 $bodyBack:#0d1117;
+$err:#f51717;
 $borderColor2:#5f5f5f;
 $borderColor3:#1e1e1e;
 *{
@@ -30,6 +31,12 @@ button:disabled{
     pointer-events: none;
     cursor: not-allowed;
     background: $borderColor;
+}
+//p tag
+.error-msg{
+    margin-top: 0.3rem;
+    color: $err;
+    font-size: 0.8rem;
 }
 input[type="file"]{
     width: 7rem;
