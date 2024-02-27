@@ -24,6 +24,7 @@ export const getUser = async (req,res,next)=>{
         }
     }catch (e) {
         console.log(e);
+        return res.status(500).send({msg:e.message})
     }
     next();
 }

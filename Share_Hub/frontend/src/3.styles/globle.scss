@@ -1,6 +1,6 @@
 $cardBack : #b6e2e7;
-$navback :  #d2ccc4;
-$blueColor:#3574d6;
+$navback :  black;
+$blueColor:#2f81f7;
 $borderColor:#373737;
 $fontColor:#dfdfdf;
 $bodyBack:#0d1117;
@@ -226,4 +226,21 @@ nav{
         }
         border-bottom-color: rgb(25,103,210);
     }
+}
+.circularProgress{
+    display: flex;
+    padding: 0.3rem 0 0.4rem 2rem;
+    justify-content: flex-start;
+    align-items: center;
+    font-size: 0.7rem;
+    span{
+        margin-right: 0.5rem;
+    }
+}
+
+.full-screen-blur{
+    position: absolute;
+    inset: 0 0 0 0;
+    //backdrop-filter: blur(0.5px);
+    z-index: 3;
 }

@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
+const category = ['Owner','Editor','Viewer'];
 const userSchema = new mongoose.Schema(
     {
         email:{type:String,required:true,unique:true,trim:true},
-        materials:[{type:mongoose.Schema.Types.ObjectId,ref:'Material'}],
+        materials:[{material:{type:mongoose.Schema.Types.ObjectId,ref:'Material'},role:{type:String,enum:category,defalut:'Viewer'}}],
         name:{type:String,required:true}
     },
 );

@@ -23,8 +23,10 @@ import {
 import {useContext, useEffect, useRef, useState} from "react";
 import {Context} from "../../Context";
 import {useNavigate} from "react-router-dom";
+import {Checkbox} from "@mui/material";
 
-export function MaterialCard({commentOnclick,updateMaterial,index,material}){
+export function MaterialCard({commentOnclick,updateMaterial,index,materialObj}){
+    const material = materialObj.material;
     const {activeUser} = useContext(Context);
     const [like,setLike]=useState(false);
     const expandOptionsRef = useRef();
@@ -45,7 +47,7 @@ export function MaterialCard({commentOnclick,updateMaterial,index,material}){
             ({res,data} = await likeMaterial(material._id))
         }
         if(res.ok){
-            updateMaterial(data,index);
+            updateMaterial({...materialObj,['material']:data},index);
             setLike(!like);
         }
     }
@@ -97,7 +99,7 @@ export function MaterialCard({commentOnclick,updateMaterial,index,material}){
                 </div>
                 <div className={'material-card-options'}>
                     <div className={'material-card-options-right'}>
-                        <div onClick={(e)=>commentOnclick(material,index)}>
+                        <div onClick={(e)=>commentOnclick(materialObj,index)}>
                             <CommentOutlinedIcon/>
                             <span>{material.comments.length}</span>
                         </div>
@@ -107,7 +109,7 @@ export function MaterialCard({commentOnclick,updateMaterial,index,material}){
                         </div>
                         <div>
                             <GroupsOutlinedIcon/>
-                            <span>235</span>
+                            <span>{material.users.length}</span>
                         </div>
                     </div>
                     <div className={'material-card-options-left'}><ReplyOutlinedIcon style={{transform: "scaleX(-1)"}}/></div>
@@ -137,7 +139,7 @@ export function CreateMaterialForm({setScreen,setMaterials}){
         const {res,data}=await createMaterial({name:e.target.name.value,desc:e.target.desc.value});
         if(res.ok){
             setScreen({msg:'',data:''});
-            setMaterials(data.materials);
+            setMaterials(data);
         }else{
             setError({msg:data.msg});
         }
@@ -184,7 +186,7 @@ export function CreateMaterialForm({setScreen,setMaterials}){
 }
 export function GetMaterialForm({setScreen,setMaterials}){
     const [error,setError]=useState({msg:'',field:''})
-    const [code,setCode] = useState();
+    const [code,setCode] = useState('');
     const navigate = useNavigate();
     const codeChange=(e)=>{
         setCode(e.target.value);
@@ -228,10 +230,10 @@ export function GetMaterialForm({setScreen,setMaterials}){
                     <div className={'get-material-body'}>
                         <div>
                             <p>Enter a 8-digit unique material code</p>
-                            {error.msg.length>0 && error.field==='code' && <p className={'error-msg'}>{error.msg}</p>}
                         </div>
                         <div>
                             <input id={'code'} required={true} onChange={codeChange}/>
+                            {error.msg.length>0 && error.field==='code' && <p className={'error-msg'}>{error.msg}</p>}
                         </div>
                         <div className={'get-material-buttons'}>
                             <button className={'close-btn'} onClick={closeScreen}>Close</button>
@@ -244,10 +246,10 @@ export function GetMaterialForm({setScreen,setMaterials}){
     )
 }
 
-export function Comment({comment,ref}){
+export function Comment({comment}){
     return(
         <>
-            <div ref={ref} className={'comment-outer'}>
+            <div className={'comment-outer'}>
                 <div className={'comment-heading'}>
                     <div className={'comment-user'}>
                         <img src={comment.profilePic} width={'30px'}></img>
@@ -281,7 +283,7 @@ export function CommentScreen({setScreen,screen,commentOnClick}){
     const last = useRef();
     useEffect(() => {
         async function helper(){
-            const {res,data} = await getComments(screen.data._id);
+            const {res,data} = await getComments(screen.data.material._id);
             if(res.ok){
                 setComments(data);
             }
@@ -309,12 +311,12 @@ export function CommentScreen({setScreen,screen,commentOnClick}){
         setMsg(e.target.value);
     }
     const msgSend = async(e)=>{
-        const {res,data} = await commentMaterial(screen.data._id,msg);
+        const {res,data} = await commentMaterial(screen.data.material._id,msg);
         if(res.ok){
-            screen.updateMaterial(data,screen.index);
-            commentOnClick(data,screen.index);
+            let temp ={material:data,role:screen.data.role,_id:screen.data._id};
+            screen.updateMaterial(temp,screen.index);
+            commentOnClick(temp,screen.index);
             setMsg('');
-
         }else{
 
         }

@@ -3,7 +3,12 @@ import {mongoose} from "../Database/conn.js";
 import User from "../Models/User.js"
 import {Material,Comment} from "../Models/Material.js";
 import {getUser, upload,} from "../middleware/midllewares.js";
-import {getDownloadUrlPath, listFilesAndDirs, uploadFile,} from "../Utils/fileFunctions.js";
+import {
+    createFolder,
+    deleteFile, deleteFolder,
+    listFilesAndDirs,
+    uploadFile,
+} from "../Utils/fileFunctions.js";
 import fs from "fs";
 import bodyParser from 'body-parser';
 import {firebaseConfig} from "../Utils/firebaseConfig.js";
@@ -14,8 +19,8 @@ MaterialRouter.use(bodyParser.json())
 
 MaterialRouter.post('/create',getUser,async(req,res)=>{
     const session = await mongoose.startSession();
+    await session.startTransaction();
     try{
-        await session.startTransaction();
         const {activeUser,name,desc} = req.body;
         let user = await User.findById(activeUser._id);
         if(!user){
@@ -26,20 +31,18 @@ MaterialRouter.post('/create',getUser,async(req,res)=>{
         while(await Material.findOne({code})){
             code = otpGenerator.generate(8, { digits: false, upperCaseAlphabets: false,specialChars: false});
         }
-        let material = await new Material({name,desc,creator:user._id,code});
+        let material = await new Material({name,desc,code,user:[activeUser._id],creator:activeUser._id});
         await material.save();
-        user.materials.push(material._id);
-        user.save();
+        const result = await createFolder(`${user._id}/${material._id}`);
+        user.materials.push({material:material._id,role:'Owner'});
+        await user.save();
+        const fullUser = await user.populate('materials.material');
         await session.commitTransaction();
-        const materials = [];
-        for (let i = 0; i < user.materials.length; i++) {
-            materials.push(await Material.findById(user.materials[i].toString()));
-        }
-        return res.status(200).send({msg:"Successfully created new material.",materials});
+        return res.status(200).json(fullUser.materials);
     }catch (e) {
         await session.abortTransaction();
         console.log(e);
-        return res.status(500).send({msg:"Internal server error."})
+        return res.status(500).send({msg:e.message})
     }finally{
         await session.endSession();
     }
@@ -82,9 +85,9 @@ MaterialRouter.post('/removeLike',getUser,async(req,res)=>{
 })
 MaterialRouter.post('/addMaterial',getUser,async(req,res)=>{
     const session = await mongoose.startSession();
+    await session.startTransaction();
     try{
-        await session.startTransaction();
-        const {activeUser,materialCode} = req.body;
+        const {activeUser,materialCode,role='Viewer'} = req.body;
         let user = await User.findById(activeUser._id);
         if(!user){
             user = await new User({_id:activeUser._id,email:activeUser.email,name:activeUser.name})
@@ -92,16 +95,15 @@ MaterialRouter.post('/addMaterial',getUser,async(req,res)=>{
         }
         let material = await Material.findOne({code:materialCode});
         if(!material)return res.status(400).send({msg:`No material found with the code ${materialCode}.`,field:'code'})
-        let alreadyHas = await User.find({_id:user._id,materials:material._id});
+        let alreadyHas = await User.find({_id:user._id,'materials.material.code': materialCode});
         if(alreadyHas.length>0)return res.status(409).send({msg:"Material is already in your list.",field:'code'})
-        user.materials.push(material._id);
-        user.save();
+        user.materials.push({material:material._id,role});
+        material.users.push(user._id);
+        await user.save();
+        await material.save();
         await session.commitTransaction();
-        const materials = [];
-        for (let i = 0; i < user.materials.length; i++) {
-            materials.push(await Material.findById(user.materials[i].toString()));
-        }
-        return res.status(200).json(materials);
+        const fullUser = await user.populate('materials.material')
+        return res.status(200).json(fullUser.materials);
     }catch (e) {
         await session.abortTransaction();
         console.log(e);
@@ -115,12 +117,9 @@ MaterialRouter.post('/get',getUser,async(req,res)=>{
     try{
         const {activeUser} = req.body;
         const user = await User.findById(activeUser._id);
-        if(!user)return res.status(200).send({msg:"No material found for this user."});
-        const materials = [];
-        for (let i = 0; i < user.materials.length; i++) {
-            materials.push(await Material.findById(user.materials[i].toString()));
-        }
-        return res.status(200).json(materials);
+        if(!user || user.materials.length===0)return res.status(200).send({msg:"No material found for this user."});
+        const fullUser = await user.populate('materials.material');
+        return res.status(200).json(fullUser.materials);
     }catch (e){
         console.log(e);
         return res.status(500).send({msg:"Internal server error"})
@@ -131,7 +130,10 @@ MaterialRouter.post('/get',getUser,async(req,res)=>{
 MaterialRouter.post('/getMaterialById',getUser,async(req,res)=>{
     try{
         const {activeUser,materialId} = req.body;
-        const user = await User.findOne({_id:activeUser._id,materials: materialId});
+        const user = await User.findOne({
+            _id:activeUser._id,
+            'materials.material': materialId
+        });
         if(!user)return res.status(200).send({msg:"This material does not belongs to you try with another one"});
         const material = await Material.findOne({_id:materialId});
         return res.status(200).json(material);
@@ -149,16 +151,60 @@ MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=
         if(manualPath)cloudPath+=manualPath+'/';
         console.log(manualPath,cloudPath)
         await uploadFile(req.file,cloudPath);
+        return res.status(200).send({msg:"file uploaded successfully"});
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:"Internal server error."})
+    }finally {
         fs.unlink(req.file.path,(err)=>{
             console.log(err);
         });
-        return res.status(200).send({msg:"file uploaded successfully"});
+    }
+})
+
+MaterialRouter.post('/createFolder',getUser,async(req,res)=>{
+    try{
+        const{activeUser,folderName,path,material} = req.body;
+        if(!material || !folderName)return res.status(400).send({msg:"All field are mandatory"});
+        const cloudPath = `${activeUser._id}/${material._id}/${path}/${folderName}`
+        const result = await createFolder(cloudPath);
+        if(result.ok)return res.status(200).send({msg:"Folder created successfully."});
+        return res.status(401).json(result);
+    }catch (e){
+        console.log(e);
+        return res.status(500).send({msg:e.message});
+    }
+})
+
+MaterialRouter.post('/deleteFile',getUser,async(req,res)=>{
+    try{
+        const {activeUser,materialId,path,type='file'} = req.body;
+        const user = await User.findById(activeUser._id);
+        const material = await Material.findById(materialId);
+        if(!material)return res.status(400).send({msg:"You have provided the wrong material id."});
+        if(!user || user._id.toString()!==material.creator._id.toString())return res.status(400).send({msg:"You don't have right to delete other's material."})
+        const cloudPath = `${user._id}/${material._id}/${path}`
+        if(type==='folder'){
+            const failed = await deleteFolder(cloudPath);
+            if(failed.length===0){
+                return res.status(200).send({msg:"Successfully deleted all files within the folder"})
+            }else{
+                return res.status(500).json(failed);
+            }
+        }else{
+            const result = await deleteFile(cloudPath);
+            if(result.ok){
+                return res.status(200).send({msg:"Successfully deleted the files"})
+            }else{
+                console.log(result.error);
+                return res.status(500).json(result.error);
+            }
+        }
     }catch (e) {
         console.log(e);
         return res.status(500).send({msg:"Internal server error."})
     }
 })
-
 MaterialRouter.post('/getFilesList',getUser,async(req,res)=>{
     try{
           const {activeUser,path,materialId} = req.body;

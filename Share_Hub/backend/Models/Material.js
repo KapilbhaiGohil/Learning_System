@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 const materialSchema = new mongoose.Schema(
     {
-        creator:{type:mongoose.Schema.Types.ObjectId,required:true,ref:'User'},
+        creator:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},
         name:{type:String,required:true,trim:true},
         desc:{type:String,trim:true,required:true},
         likes:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],
         comments:[{type:mongoose.Schema.Types.ObjectId,ref:'Comment'}],
-        code:{type:String,required:true}
+        code:{type:String,required:true},
+        users:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}]
     }
 )
 materialSchema.index({code:1});
@@ -22,5 +23,4 @@ const commentSchema = new mongoose.Schema(
         timestamps:true
     }
 )
-
 export const Comment = mongoose.model('Comment',commentSchema);

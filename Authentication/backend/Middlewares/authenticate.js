@@ -8,8 +8,12 @@ const authenticate = async function(req,res,next){
     try{
         const obj = await jsonwebtoken.verify(token,process.env.JSONKEY)
         const user = await User.findOne({_id:obj._id})
-        req.body.user = user;
-        next();
+        if(user!=null){
+            req.body.user = user;
+            next();
+        }else{
+            return res.status(401).send({msg:'Token expired pls provide valid token',field:'token'});
+        }
     }catch (e) {
         console.error(e)
         return res.status(401).send({msg:"Unauthorized request - Invalid Token"})

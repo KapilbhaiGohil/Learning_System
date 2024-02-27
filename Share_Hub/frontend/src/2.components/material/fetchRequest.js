@@ -17,6 +17,7 @@ export const getMaterialById=async (materialId)=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 export const uploadFile=async (formData)=>{
@@ -30,6 +31,23 @@ export const uploadFile=async (formData)=>{
         return {res,data};
     }catch (e) {
         console.log("error while uploading file : ",e);
+        return {res: {ok:false},data: {e,msg:e.message}};
+    }
+}
+export  const createFolderReq=async (path,material,folderName)=>{
+    try{
+        const res = await fetch(url+'/material/createFolder',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({path,token,material,folderName})
+        });
+        const data = await res.json();
+        return {res,data};
+    }catch (e) {
+        console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 export const getFilesList=async (path,materialId)=>{
@@ -45,9 +63,26 @@ export const getFilesList=async (path,materialId)=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 
+export const deleteFileRequest=async (path,materialId,type)=>{
+    try{
+        const res = await fetch(url+'/material/deleteFile',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({path,token,materialId,type})
+        });
+        const data = await res.json();
+        return {res,data};
+    }catch (e) {
+        console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
+    }
+}
 export function getPathAsString(pathArray,start=0){
     let str = "";
     for (let i = start; i < pathArray.length; i++) {
@@ -58,4 +93,15 @@ export function getPathAsString(pathArray,start=0){
 export async function getFileContentAsText(filepath){
     const res = await fetch(filepath)
     return await res.text();
+}
+export async function deleteFiles(path,array,materialId,type='file',setProgress,total){
+    const failed = [];
+    for (let i = 0; i < array.length; i++) {
+        if(array[i].selected && array[i].name !== 'folder_storing_purpose.txt'){
+            const {res,data} = await deleteFileRequest(path+array[i].storedName,materialId,type)
+            if(!res.ok)failed.push(array[i]);
+            setProgress(prev=>prev+(60/total));
+        }
+    }
+    return failed;
 }

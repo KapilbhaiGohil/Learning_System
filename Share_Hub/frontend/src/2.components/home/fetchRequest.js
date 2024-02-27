@@ -16,6 +16,7 @@ export const getMaterials = async()=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 export const createMaterial=async (bodyObj)=>{
@@ -32,6 +33,7 @@ export const createMaterial=async (bodyObj)=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 export const likeMaterial=async (materialId)=>{
@@ -47,6 +49,7 @@ export const likeMaterial=async (materialId)=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 export const removeLikeMaterial=async (materialId)=>{
@@ -62,6 +65,7 @@ export const removeLikeMaterial=async (materialId)=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 export const commentMaterial=async (materialId,msg)=>{
@@ -77,6 +81,7 @@ export const commentMaterial=async (materialId,msg)=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 export const getComments = async (materialId)=>{
@@ -92,6 +97,7 @@ export const getComments = async (materialId)=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
 
@@ -108,5 +114,6 @@ export const joinMaterialRequest = async (materialCode)=>{
         return {res,data};
     }catch (e) {
         console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
     }
 }

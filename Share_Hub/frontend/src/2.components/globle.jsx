@@ -3,6 +3,7 @@ import logo from "../5.assets/finalLogo.png"
 import {useContext, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Context} from "../Context";
+import {blue} from "@mui/material/colors";
 export function Navbar(){
     const [create,setCreate] = useState(false);
     const getMaterial=()=>{
@@ -133,3 +134,13 @@ export function Input({label,onChange,autoComplete,name}){
         </>
     )
 }
+//color defined
+export const $cardBack = "#b6e2e7";
+export const $navback =  "black";
+export const $blueColor="#2f81f7";
+export const $borderColor="#373737";
+export const $fontColor="#dfdfdf";
+export const $bodyBack="#0d1117";
+export const $err="#f51717";
+export const $borderColor2="#5f5f5f";
+export const $lightBlue='#447bff';

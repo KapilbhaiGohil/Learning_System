@@ -14,7 +14,11 @@ userRouter.post('/getUserByCookie',async(req,res)=>{
     try{
         const obj = await jsonwebtoken.verify(token,process.env.JSONKEY)
         const user = await User.findOne({_id:obj._id})
-        return res.status(200).json(user);
+        if(user){
+            return res.status(200).json(user);
+        }else{
+            return res.status(401).send({msg:"No user found with the token."})
+        }
     }catch (e) {
         console.error(e)
         return res.status(401).send({msg:"Unauthorized request - Invalid Token"})

@@ -3,22 +3,32 @@ import {
     FolderOpenRounded,
     InsertDriveFileOutlined,
     CloudUploadOutlined,
-    ChevronRightRounded, AddOutlined, MoreHorizOutlined
+    ChevronRightRounded, AddOutlined, MoreHorizOutlined, CreateNewFolder, DoNotDisturbOutlined, CheckBox
 } from '@mui/icons-material';
+import fopen from "../../5.assets/folderOpen.svg"
 import {useContext, useEffect, useState} from "react";
 import CloseIcon from '@mui/icons-material/Close';
-import {getFilesList, getPathAsString, uploadFile} from "./fetchRequest";
+import {createFolderReq, getFilesList, getPathAsString, uploadFile} from "./fetchRequest";
 import {Cookies} from "react-cookie";
 import {Context} from "../../Context";
+import {CircularProgress} from "@mui/joy";
+import {useNavigate} from "react-router-dom";
+import {Checkbox} from "@mui/material";
+import {grey} from "@mui/material/colors";
+import {$blueColor, $borderColor, $borderColor3, $fontColor, $lightBlue} from "../globle";
+import LoadingBar from "react-top-loading-bar";
 
-export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPathArray,folder,prefix,material,depth}){
+export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setProgress,setPathArray,folder,prefix,material,depth}){
     const [isOpen,setIsOpen] = useState(false);
     const [files,setFiles] = useState({});
+    const [circularProgress,setCircularProgress] = useState(false);
 
-    const openFolderContentOnStructure=async(e,destFolder,manual=false)=>{
+    const openFolderContentOnStructure=async(e,destFolder)=>{
         e.preventDefault();
         e.stopPropagation();
-        if(!isOpen || manual){
+        if(!isOpen){
+            setIsOpen(true);
+            setCircularProgress(true);
             let temp = {...allFiles},item = temp,prefixArray = prefix.split('/');
             for (let i = 0; i < prefixArray.length; i++) {
                 for (let j = 0; j < item.folders.length; j++) {
@@ -28,9 +38,8 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPath
                     }
                 }
             }
-            if((item.folders.length>0 || item.files.length>0) && !manual){
+            if((item.folders.length>0 || item.files.length>0)){
                 setFiles(item);
-                setIsOpen(true);
                 console.log("buffered data for ",folder)
             }else{
                 const {res,data} = await getFilesList(material._id+"/"+prefix,material._id);
@@ -40,11 +49,12 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPath
                     item.files = data.files
                     item.folders = data.folders
                     setAllFiles(temp);
-                    setIsOpen(true);
                 }
             }
+            setCircularProgress(false);
         }else{
-            if(!manual)setIsOpen(false);
+            setIsOpen(false);
+            if(circularProgress)setCircularProgress(!circularProgress);
         }
     }
     useEffect(() => {
@@ -74,7 +84,6 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPath
     const selectFolder=async(e)=>{
         e.preventDefault();
         e.stopPropagation();
-        await openFolderContentOnStructure(e,folder,true);
         if(prefix.length>0){
             let temp = prefix.split('/'),ans=[pathArray[0]];
             for (let i = 0; i < temp.length; i++) {
@@ -92,66 +101,137 @@ export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setPath
                         <ChevronRightRounded style={isOpen ? {transform:"rotate(90deg)"} :{}} />
                     </div>
                     <div className={'folder-structure-folder'}>
-                        {isOpen ?<FolderOpenRounded/> : <FolderRounded/>}
+                        {isOpen ?<FolderOpenLogo/> : <FolderRounded/>}
                         <div className={'folder-structure-name'}>{folder.name}</div>
                     </div>
                 </div>
-                {isOpen && files.folders && files.folders.map((folder,i)=><FolderStructure key={i} showFile={showFile} pathArray={pathArray} setPathArray={setPathArray} folder={folder} material={material} setAllFiles={setAllFiles} depth={depth+1} allFiles={allFiles} prefix={prefix.length>0 ?prefix+"/"+folder.name:folder.name}/>)}
-                {isOpen && files.files && files.files.map((file,i)=><FileStructure key={i} prefix={prefix} showFile={showFile}  file={file}/>)}
+                {circularProgress && <LoadingWithText text={'Loading...'} />}
+                {isOpen && files.folders && files.folders.map((folder,i)=><FolderStructure setProgress={setProgress} key={i} showFile={showFile} pathArray={pathArray} setPathArray={setPathArray} folder={folder} material={material} setAllFiles={setAllFiles} depth={depth+1} allFiles={allFiles} prefix={prefix.length>0 ?prefix+"/"+folder.name:folder.name}/>)}
+                {isOpen && files.files && files.files.map((file,i)=><FileStructure key={i} prefix={prefix} onlyOneFile={files.files.length+files.folders.length===1} showFile={showFile}  file={file}/>)}
             </div>
         </>
     )
 }
-export function FileStructure({file,showFile,prefix}){
+export function FileStructure({file,showFile,prefix,onlyOneFile}){
     return(
         <>
             <div style={{marginLeft:`9px`,borderLeft:"1px solid #373737",borderRadius:"0"}} >
+                {file.name!=='folder_storing_purpose.txt' ?
                 <div onClick={(e)=>{showFile(e,file,true,prefix)}} className={'file-structure-outer'}>
                     <InsertDriveFileOutlined/>
                     <span>{file.name}</span>
+                </div>:
+                    onlyOneFile &&
+                <div className={'file-structure-outer'}>
+                    <DoNotDisturbOutlined/>
+                    <span>No files found.</span>
                 </div>
+                }
             </div>
         </>
     )
 }
-export function FolderInfo({folder,setPathArray}){
+export function FolderInfo({folder,setPathArray,setFiles,setNoSelected}){
+    const navigate = useNavigate();
+    const [checked,setChecked] = useState(false);
+    useEffect(() => {
+        if(folder.selected!==undefined)setChecked(folder.selected);
+        else setChecked(false);
+    }, [folder.selected]);
     const handleFolderClick = (e)=>{
-        if(folder.name==='. .'){setPathArray((prev)=>{
-            let temp = [...prev];
-            temp.pop();
-            return temp;
-        })}
+        if(folder.name==='. .'){
+            setPathArray((prev)=>{
+                if(prev.length===1){
+                    navigate('/home');
+                    return prev;
+                }else{
+                    let temp = [...prev];
+                    temp.pop();
+                    return temp;
+                }
+            })
+        }
         else{
             setPathArray((prev)=>[...prev, {name:folder.name,type:'folder'}]);
         }
     }
+    const onSelection=(e)=>{
+        setFiles((prev)=>{
+            let temp = {...prev};
+            temp.folders = temp.folders.map(f=>{
+                if(f.name===folder.name){
+                    f.selected = !checked
+                    return f;
+                }
+                return f;
+            });
+            return temp;
+        })
+        checked ? setNoSelected((prev)=>prev-1) : setNoSelected((prev)=>prev+1);
+        setChecked(!checked);
+    }
     return(
         <>
             <div style={{ cursor: folder.name === '. .' ? 'pointer' : ''}} onClick={ folder.name==='. .' ? handleFolderClick : ()=>{}} className={'folder-info-outer'}>
-                <FolderRounded/>
-                <span onClick={handleFolderClick}>{folder.name}</span>
+                <div className={'folder-info'}>
+                    <FolderRounded/>
+                    <span onClick={handleFolderClick}>{folder.name}</span>
+                </div>
+                <div className={'folder-info-options'}>
+                    {folder.name!=='. .' && <Checkbox checked={checked} onChange={onSelection} size={'medium'}  color={'primary'}
+                               sx={{color: $borderColor, '&.Mui-checked': {color: $lightBlue,},}}/>}
+                </div>
             </div>
         </>
     )
 }
-export function FileInfo({file,showFile}){
+export function FileInfo({file,showFile,setFiles,setNoSelected}){
+    const[checked,setChecked] = useState(false);
+    useEffect(() => {
+        if(file.selected!==undefined)setChecked(file.selected);
+        else  setChecked(false);
+    }, [file.selected]);
+    const onSelection=(e)=>{
+        setFiles((prev)=>{
+            let temp = {...prev};
+            temp.files = temp.files.map(f=>{
+                if(f.storedName===file.storedName){
+                    f.selected = !checked
+                    return f;
+                }
+                return f;
+            });
+            return temp;
+        })
+        checked ? setNoSelected((prev)=>prev-1) : setNoSelected((prev)=>prev+1);
+        setChecked(!checked);
+    }
     return(
         <>
-            <div className={'file-info-outer'}>
-                <InsertDriveFileOutlined/>
-                <span onClick={(e)=>{showFile(e,file)}}>{file.name}</span>
-            </div>
+            {file.name!=='folder_storing_purpose.txt' &&
+                <div className={'file-info-outer'}>
+                    <div className={'file-info'}>
+                        <InsertDriveFileOutlined/>
+                        <span onClick={(e)=>{showFile(e,file)}}>{file.name}</span>
+                    </div>
+                    <div className={'file-info-options'}>
+                        <Checkbox size={'medium'} checked={checked} onChange={onSelection} color={'primary'} sx={{color: $borderColor,'&.Mui-checked': {color: $lightBlue,},}}/>
+                    </div>
+                </div>
+            }
         </>
     )
 }
 export function Path({material,pathArray,setPathArray}){
     const [expand,setExpand] = useState(false);
     const [uploadScreen,setUploadScreen] = useState(false);
+    const [createFolderScreen,setCreateFolderScreen] = useState(false);
     const {activeUser} = useContext(Context);
     const addFileClick=(e)=>{
         setExpand(!expand);
     }
     const uploadFileClick=(e)=>{
+        setExpand(false);
         setUploadScreen(!uploadScreen);
     }
     const spanPathClick=(e,i)=>{
@@ -160,6 +240,10 @@ export function Path({material,pathArray,setPathArray}){
             newPathArray.push(pathArray[j]);
         }
         setPathArray(newPathArray);
+    }
+    const addFolderClick=(e)=>{
+        setExpand(false);
+        setCreateFolderScreen(!createFolderScreen);
     }
     return(
         <>
@@ -181,11 +265,14 @@ export function Path({material,pathArray,setPathArray}){
                             <AddOutlined/>
                         </div>
                     }
-
                     {expand && <div className={'path-add-file-extension'} id={'file-extension'}>
                         <div onClick={uploadFileClick}>
                             <CloudUploadOutlined/>
                             <span>Upload Files</span>
+                        </div>
+                        <div onClick={addFolderClick}>
+                            <CreateNewFolder />
+                            <span>Create Folder</span>
                         </div>
                     </div>}
                     <div className={'path-options'}>
@@ -194,11 +281,62 @@ export function Path({material,pathArray,setPathArray}){
                 </div>
             </div>
             {uploadScreen && <UploadScreen uploadFileClick={uploadFileClick} setPathArray={setPathArray} pathArray={pathArray} material={material}/>}
+            {createFolderScreen && <CreateFolder addFolderClick={addFolderClick} pathArray={pathArray} setPathArray={setPathArray} material={material}/>}
+        </>
+    )
+}
+export function CreateFolder({addFolderClick,pathArray,material,setPathArray}){
+    const [error,setError]  = useState({msg:'',field:''})
+    const [folderName,setFolderName] = useState('');
+    const folderNameChange=(e)=>{
+        setFolderName(e.target.value);
+        if(error.msg.length>0)setError({msg:'',field: ''});
+    }
+    const closeScreen = ()=>{
+        let ele = document.getElementById('create-folder');
+        ele.style.transition="all 0.4s";
+        ele.style.top = "100%";
+        setTimeout(()=>{addFolderClick()},400);
+    }
+    useEffect(() => {
+        let ele = document.getElementById('create-folder');
+        ele.style.transition="all 0.4s";
+        ele.style.top="100%";
+        setTimeout(()=>{ ele.style.top = "0";},10);
+    }, []);
+    const createFolder=async (e)=>{
+        const path = getPathAsString(pathArray,1);
+        const {res,data} = await createFolderReq(path,material,folderName);
+        if(res.ok){
+            setPathArray([...pathArray]);
+            closeScreen();
+        }else{
+            setError({msg:data.msg,field:''});
+        }
+    }
+    return(
+        <>
+            <div id={'create-folder'} className={'create-folder'}>
+                <div className={'create-folder-outer'}>
+                    <div className={'create-folder-heading'}>
+                        <h4>Create new folder</h4>
+                    </div>
+                    <div className={'create-folder-input'}>
+                        <input onChange={folderNameChange} placeholder={'Enter folder name'} type={'text'} required={true}/>
+                        {error.msg.length>0 && <p className={'error-msg'}>{error.msg}</p>}
+                    </div>
+                    <div className={'create-folder-buttons'}>
+                        <button onClick={createFolder}>Create</button>
+                        <button className={'close-btn'} onClick={closeScreen}>Close</button>
+                    </div>
+                </div>
+            </div>
         </>
     )
 }
 export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
     const [files,setFiles] = useState([]);
+    const [progress,setProgress] = useState(0);
     const closeScreen = ()=>{
         let ele = document.getElementById('upload');
         ele.style.transition="all 0.4s";
@@ -234,7 +372,6 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
 
     function handleDragLeave(e) {
         e.preventDefault()
-
     }
     function traverseFileTree(item, path) {
         path = path || "";
@@ -266,19 +403,23 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
         let initialPath = material._id;
         if(pathArray.length>0)initialPath+='/'+getPathAsString(pathArray,1);
         const token = new Cookies().get('token');
+        setProgress(10);
         for (let i = 0; i < files.length; i++) {
             const filesData = new FormData();
             filesData.append(`inputFile`,files[i]);
             filesData.append('initialPath',initialPath);
             filesData.append('token',token);
             if(files[i].manualPath)filesData.append('manualPath',files[i].manualPath);
-            await uploadFile(filesData);
+            const {res,data} = await uploadFile(filesData);
+            setProgress(prevState => prevState+(90/files.length));
         }
         setPathArray((prev)=>[...prev]);
         uploadFileClick();
     }
     return(
         <>
+            <LoadingBar color={$blueColor} progress={progress} loaderSpeed={500}
+                        onLoaderFinished={() => setProgress(0)}/>
             <div className={'upload'} id={'upload'}>
                 <div className={'upload-outer'}>
                     <div className={'upload-heading'}>
@@ -329,4 +470,19 @@ export function UploadedFile({removeFile,file,index}){
             </div>
         </>
     )
+}
+export function LoadingWithText({text}){
+    return(
+        <>
+            <div className={'circularProgress'}>
+                <CircularProgress style={{background:'black'}} sx={{"--CircularProgress-size":"20px"}} thickness={2} size={"sm"} variant={'soft'}  color={'neutral'}/>
+                <p>{text}</p>
+            </div>
+        </>
+    )
+}
+export function FolderOpenLogo(){
+    return<>
+        <img src={fopen} style={{width:"1.2rem"}}/>
+    </>
 }

@@ -65,33 +65,47 @@
         .material-screen-heading{
           display: flex;
           align-items: center;
-          padding: 0.65rem 1rem;
           border-bottom: 1px solid $borderColor;
           justify-content: space-between;
           border-radius: 0.3rem 0.3rem 0 0;
           background: $borderColor3;
           font-size: 0.9rem;
+          .material-screen-heading-options{
+            display: flex;
+            align-items: center;
+          }
+          .material-screen-heading-name{
+            padding: 0.65rem 1rem;
+          }
         }
-        >div:not(:first-child):not(.content-screen){
-          display: flex;
-          align-items: center;
-          padding: 0.65rem 1rem;
+        .folder-info-outer,.file-info-outer{
           border-bottom: 1px solid $borderColor;
-          svg{
-            font-size: 1.2rem;
-            fill: #dfdfdf;
-            margin-right: 0.8rem;
+          display: flex;
+          justify-content: space-between;
+          .folder-info,.file-info{
+            display: flex;
+            align-items: center;
+            padding: 0.65rem 1rem;
+            svg{
+              font-size: 1.2rem;
+              fill: #dfdfdf;
+              margin-right: 0.8rem;
+            }
+            span {
+              cursor: pointer;
+              font-size: 0.9rem;
+
+              &:hover {
+                color: $blueColor;
+                text-decoration: underline;
+              }
+            }
+          }
+          .folder-info-options,.file-info-options{
+
           }
           &:hover:not(.content-screen){
             background: $borderColor3;
-          }
-          span{
-            cursor: pointer;
-            font-size: 0.9rem;
-            &:hover{
-              color: $blueColor;
-              text-decoration: underline;
-            }
           }
         }
       }
@@ -100,7 +114,7 @@
 
 
 
-//style for the folderstructure compoonent
+//style for the folderstructure component
 .folder-structure-outer{
   display: flex;
   align-items: center;
@@ -131,6 +145,7 @@
     background: $borderColor;
   }
 }
+
 //style for the filestructure compoonent
 .file-structure-outer{
   display: flex;
@@ -201,9 +216,10 @@
       svg{font-size: 1.2rem;}
     }
     .path-add-file-extension{
+      z-index: 3;
       position: absolute;
       top: 2.3rem;
-      right: 3.6rem;
+      right: 2.45rem;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -251,7 +267,7 @@
   }
 }
 
-//style for the uploadScree
+//style for the uploadScreen
 .upload{
   position: fixed;
   inset: 0 0 0 0;
@@ -376,6 +392,7 @@
   height: 100%;
   overflow-y: scroll;
   padding: 0;
+  position: relative;
   &::-webkit-scrollbar {
     display: none;
   }
@@ -393,5 +410,70 @@
       min-height: 100%;
       background: transparent;
     }
+  }
+}
+
+//create folder component style
+.create-folder{
+  position: absolute;
+  inset: 0 0 0 0 ;
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .create-folder-outer{
+    display: flex;
+    flex-direction: column;
+    width: 32%;
+    justify-content: center;
+    background: $navback;
+    padding: 1rem;
+    border-radius: 0.3rem;
+    border:1px solid $borderColor;
+    position: absolute;
+    top: 2rem;
+    .create-folder-heading{
+      h4{
+        font-weight: 200;
+        color: #2f81f7;
+        font-size: 1.7rem;
+        border-bottom: 1px solid;
+        padding: 0.2rem 0;
+      }
+    }
+    .create-folder-input{
+      margin-top: 1rem;
+      input{
+        &:focus{
+          outline: none;
+          border:1px solid $borderColor;
+        }
+      }
+    }
+    .create-folder-buttons{
+      margin-top: 1rem;
+      .close-btn{
+        margin-right: 1rem;
+      }
+    }
+  }
+}
+//textwithicon component style
+.text-with-icon{
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid $borderColor;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background-color 100ms ease-in-out;
+  margin-right: 1rem;
+  &:hover{
+    background-color: $borderColor;
+  }
+  svg{
+    font-size: 1.35rem;
+    margin-right: 0.4rem;
   }
 }
