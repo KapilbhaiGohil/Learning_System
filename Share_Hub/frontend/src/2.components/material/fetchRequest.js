@@ -67,14 +67,14 @@ export const getFilesList=async (path,materialId)=>{
     }
 }
 
-export const deleteFileRequest=async (path,materialId,type)=>{
+export const deleteFileRequest=async (path,materialId,type,fileName)=>{
     try{
         const res = await fetch(url+'/material/deleteFile',{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
             },
-            body:JSON.stringify({path,token,materialId,type})
+            body:JSON.stringify({path,token,materialId,fileName,type})
         });
         const data = await res.json();
         return {res,data};
@@ -98,9 +98,9 @@ export async function deleteFiles(path,array,materialId,type='file',setProgress,
     const failed = [];
     for (let i = 0; i < array.length; i++) {
         if(array[i].selected && array[i].name !== 'folder_storing_purpose.txt'){
-            const {res,data} = await deleteFileRequest(path+array[i].storedName,materialId,type)
+            const {res,data} = await deleteFileRequest(path,materialId,type,array[i].storedName)
             if(!res.ok)failed.push(array[i]);
-            setProgress(prev=>prev+(60/total));
+            setProgress(prev=>prev+(40/total));
         }
     }
     return failed;

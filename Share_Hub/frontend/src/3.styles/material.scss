@@ -269,6 +269,7 @@
 
 //style for the uploadScreen
 .upload{
+  z-index: 1;
   position: fixed;
   inset: 0 0 0 0;
   height: 100%;
@@ -308,8 +309,13 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
         .upload-input{
+          position: sticky;
+          top: 0;
           background: $borderColor3;
           border-bottom: 1px solid $borderColor;
+          >div > span > svg > circle:first-child {
+            stroke: black;
+          }
         }
           span{
             padding: 0.3rem 1rem;

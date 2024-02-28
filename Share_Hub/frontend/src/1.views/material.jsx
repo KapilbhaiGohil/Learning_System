@@ -122,7 +122,6 @@ export default function Material(){
         const failed2 = await deleteFiles(path,files.folders,material._id,'folder',setProgress,files.total)
         if(failed1.length + failed2.length!==0)window.alert(`${failed2.length+failed1.length} files not deleted due to internal error`)
         setPathArray([...pathArray]);
-        setProgress(progress+20);
     }
     return(
         <>

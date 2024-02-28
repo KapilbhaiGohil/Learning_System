@@ -15,7 +15,7 @@ import {CircularProgress} from "@mui/joy";
 import {useNavigate} from "react-router-dom";
 import {Checkbox} from "@mui/material";
 import {grey} from "@mui/material/colors";
-import {$blueColor, $borderColor, $borderColor3, $fontColor, $lightBlue} from "../globle";
+import {$blueColor, $borderColor, $borderColor3, $err, $fontColor, $lightBlue} from "../globle";
 import LoadingBar from "react-top-loading-bar";
 
 export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setProgress,setPathArray,folder,prefix,material,depth}){
@@ -334,14 +334,38 @@ export function CreateFolder({addFolderClick,pathArray,material,setPathArray}){
         </>
     )
 }
+async function uploadFilesHelper(material,pathArray,setProgress,files,setUpload,setFileUploading,setFailed){
+    let initialPath = material._id;
+    if(pathArray.length>0)initialPath+='/'+getPathAsString(pathArray,1);
+    const token = new Cookies().get('token');
+    setProgress(prev=>prev+10);
+    for (let i = 0; i < files.length; i++) {
+        console.log(files[i]);
+        const filesData = new FormData();
+        filesData.append(`inputFile`,files[i]);
+        filesData.append('initialPath',initialPath);
+        filesData.append('token',token);
+        if(files[i].manualPath)filesData.append('manualPath',files[i].manualPath);
+        setUpload({state: true,curr: `${files[i].manualPath}${files[i].name}`,uploadOver: 'start'});
+        const {res,data} = await uploadFile(filesData);
+        setFileUploading(prev=>[{manualPath:files[i].manualPath,status:res.ok,name:files[i].name},...prev]);
+        if(!res.ok){
+            setFailed(prev=>[...prev,files[i]]);
+        }
+        setProgress(prevState => prevState+(70/files.length));
+    }
+}
 export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
     const [files,setFiles] = useState([]);
     const [progress,setProgress] = useState(0);
+    const [fileUploading,setFileUploading] = useState([]);
+    const [failed,setFailed] = useState([])
+    const [upload ,setUpload] = useState({state:false,curr:'',uploadOver:'notStart'});//notStart,start,completed
     const closeScreen = ()=>{
         let ele = document.getElementById('upload');
         ele.style.transition="all 0.4s";
         ele.style.top = "100%";
-        setTimeout(()=>{uploadFileClick()},400);
+        setTimeout(()=>{uploadFileClick(); setPathArray((prev)=>[...prev]);},400);
     }
     useEffect(() => {
         let ele = document.getElementById('upload');
@@ -350,6 +374,10 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
         setTimeout(()=>{ ele.style.top = "0";},10);
     }, []);
     const fileInput = (e)=>{
+        if(upload.state===false){
+            setUpload({state: false,curr: '',uploadOver: 'notStart'})
+            setFileUploading([]);
+        }
         let newFiles = [];
         for (let i = 0; i < e.target.files.length; i++) {
             newFiles.push(e.target.files[i]);
@@ -362,15 +390,7 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
         setFiles(temp);
     }
 
-    function handleDragEnter(e) {
-        e.preventDefault()
-    }
-
-    function handleDragOver(e) {
-        e.preventDefault()
-    }
-
-    function handleDragLeave(e) {
+    function handleDragEOL(e) {
         e.preventDefault()
     }
     function traverseFileTree(item, path) {
@@ -396,25 +416,35 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
         let items = e.dataTransfer.items;
         for (let i = 0; i < items.length; i++) {
             let item = items[i].webkitGetAsEntry();
-            traverseFileTree(item);
+            if(item && upload.state===false){
+                setUpload({state: false,curr: '',uploadOver: 'notStart'})
+                setFileUploading([]);
+                traverseFileTree(item)
+            }
         }
     }
-    const uploadFilesClick=async (e)=>{
-        let initialPath = material._id;
-        if(pathArray.length>0)initialPath+='/'+getPathAsString(pathArray,1);
-        const token = new Cookies().get('token');
-        setProgress(10);
-        for (let i = 0; i < files.length; i++) {
-            const filesData = new FormData();
-            filesData.append(`inputFile`,files[i]);
-            filesData.append('initialPath',initialPath);
-            filesData.append('token',token);
-            if(files[i].manualPath)filesData.append('manualPath',files[i].manualPath);
-            const {res,data} = await uploadFile(filesData);
-            setProgress(prevState => prevState+(90/files.length));
+    const uploadFilesClick=async (e,isFailed)=>{
+        if(isFailed){
+            setFiles(prev=>failed);
+            setFailed([]);
+            setFileUploading([]);
         }
-        setPathArray((prev)=>[...prev]);
-        uploadFileClick();
+        if(files.length===0){
+            window.alert('Select atleast one file to upload.');
+        }else{
+            let temp = files;
+            if(isFailed)temp = failed;
+            await uploadFilesHelper(material,pathArray,setProgress,temp,setUpload,setFileUploading,setFailed);
+            setUpload({state: false,curr: ``,uploadOver: 'completed'});
+            setProgress(100);
+            setFailed(prev=>{
+                if(prev.length===0){
+                    setFiles([]);
+                    // uploadFileClick();
+                }
+                return prev;
+            })
+        }
     }
     return(
         <>
@@ -426,57 +456,101 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
                         <span>Upload Files</span>
                     </div>
                     <div className={'upload-area'}>
-                        <div className={'upload-info'}>
-                            <div className={'upload-input'}>
-                                <span>Your files</span>
-                            </div>
-                            {files.length>0 && files.map((f,i)=><UploadedFile key={i}  file={f} index={i} removeFile={removeFile}/>)}
-                        </div>
-                        <div className={'upload-drag-area'}>
-                            <div className={'upload-input'}>
-                                <input type={'file'} multiple={true} onChange={fileInput}/>
-                            </div>
-                            <div className={'upload-drag-area-div'} onDragEnter={handleDragEnter}
-                                 onDragOver={handleDragOver}
-                                 onDragLeave={handleDragLeave}
-                                 onDrop={handleDrop}>
-                                <p> Drag and drop your files here</p>
-                            </div>
-                        </div>
+                        {!upload.state && upload.uploadOver==='notStart' &&
+                            <>
+                                <UploadBox files={files} removeFile={removeFile} label={'Your Files'}/>
+                            </>
+                        }
+                        {upload.state && upload.uploadOver==='start' &&
+                            <>
+                                <UploadBox files={fileUploading} label={`Uploading : `} currFile={upload.curr} loader={true}/>
+                            </>
+                        }
+                        {!upload.state && upload.uploadOver==='completed' &&
+                            <>
+                                <UploadBox files={fileUploading} label={`${fileUploading.length-failed.length} : Successfull ,${failed.length} : Unsuccessfull`}/>
+                            </>
+                        }
+                        <DrageArea fileInput={fileInput} disabled={upload.state || failed.length>0} handleDragEOL={handleDragEOL} handleDrop={handleDrop}/>
                     </div>
                     <div className={'upload-control'}>
                         <div className={'upload-buttons'}>
                             <button className={'close-btn'} onClick={closeScreen}>Close</button>
-                            <button onClick={uploadFilesClick}>Upload</button>
+                            <button onClick={(e)=>uploadFilesClick(e,upload.uploadOver==='completed' && failed.length>0)} disabled={upload.state}>
+                                {upload.state ?<CircularProgress sx={{"--CircularProgress-size":"22px"}} className={'circularProgress'} thickness={1.4}  size={"sm"} variant={'soft'}  color={'primary'}/>
+                                    : upload.uploadOver==='completed' && failed.length>0 ?
+                                    'Upload (failed)':
+                                    'Upload'
+                                }
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
+        </>
+    )
+}
+function UploadBox({files,removeFile,label,loader,currFile}){
+    return(
+        <>
+            <div className={'upload-info'}>
+                <div className={'upload-input'}>
+                    {loader &&
+                        <div style={{display:'flex',alignItems:'center',paddingLeft:'1rem'}}>
+                            <CircularProgress sx={{"--CircularProgress-size":"22px"}} className={'circularProgress'} thickness={1.4}  size={"sm"} variant={'soft'}  color={'primary'}/>
+                            <span style={{paddingLeft:'0',color:$blueColor}}>{label}</span>
+                            <span style={{paddingLeft:'0'}}>{currFile.substring(0,55)} {currFile.length>55 && '....'}</span>
+                        </div>
+                    }
+                    {!loader && <span>{label}</span>}
+                </div>
+                {files.length>0 && files.map((f,i)=><UploadedFile color={f.status===undefined?'':f.status ? 'green':$err} key={i} file={f} index={i} removeFile={removeFile}/>)}
             </div>
         </>
     )
 }
 
-export function UploadedFile({removeFile,file,index}){
+export function UploadedFile({removeFile,file,index,color}){
+    let currFile = file ? (file.manualPath||'')+file.name : '';
     return(
         <>
             <div className={'upload-file'}>
                 <div className={'upload-file-info'}>
-                    <InsertDriveFileOutlined/>
-                    <span>{file.manualPath}{file.name}</span>
+                    <InsertDriveFileOutlined sx={{color:color}}/>
+                    <span style={{color:color}}>{currFile.substring(0,55)}{currFile.length>55 && '....'}</span>
                 </div>
-                <div className={'upload-file-close'}>
-                    <CloseIcon onClick={()=>{removeFile(index)}}/>
-                </div>
+                {removeFile && <div className={'upload-file-close'}>
+                    <CloseIcon onClick={() => {
+                        removeFile(index)
+                    }}/>
+                </div>}
             </div>
         </>
     )
 }
-export function LoadingWithText({text}){
+export function LoadingWithText({text,circularProgressClassStyle,spanStyle,progressBarStyle}){
     return(
         <>
-            <div className={'circularProgress'}>
-                <CircularProgress style={{background:'black'}} sx={{"--CircularProgress-size":"20px"}} thickness={2} size={"sm"} variant={'soft'}  color={'neutral'}/>
-                <p>{text}</p>
+            <div style={{...circularProgressClassStyle}} className={'circularProgress'}>
+                <CircularProgress style={{...progressBarStyle}} sx={{"--CircularProgress-size":"20px"}} thickness={2} size={"sm"} variant={'soft'}  color={'neutral'}/>
+                <span style={{...spanStyle}}>{text}</span>
+            </div>
+        </>
+    )
+}
+export function DrageArea({fileInput,handleDragEOL,handleDrop,disabled}){
+    return(
+        <>
+            <div className={'upload-drag-area'}>
+                <div className={'upload-input'}>
+                    <input type={'file'} disabled={disabled} multiple={true} onChange={fileInput}/>
+                </div>
+                <div className={'upload-drag-area-div'} onDragEnter={handleDragEOL}
+                     onDragOver={handleDragEOL}
+                     onDragLeave={handleDragEOL}
+                     onDrop={handleDrop}>
+                    <p> Drag and drop your files here</p>
+                </div>
             </div>
         </>
     )

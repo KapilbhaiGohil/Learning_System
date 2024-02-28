@@ -145,19 +145,18 @@ MaterialRouter.post('/getMaterialById',getUser,async(req,res)=>{
 
 MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=>{
     try{
-        console.log("request received for file uploading....");
         const {activeUser,initialPath,manualPath} = req.body;
         let cloudPath = activeUser._id+'/'+initialPath+'/';
         if(manualPath)cloudPath+=manualPath+'/';
-        console.log(manualPath,cloudPath)
         await uploadFile(req.file,cloudPath);
+        // await new Promise(resolve => setTimeout(resolve, 1500));
         return res.status(200).send({msg:"file uploaded successfully"});
     }catch (e) {
         console.log(e);
         return res.status(500).send({msg:"Internal server error."})
     }finally {
         fs.unlink(req.file.path,(err)=>{
-            console.log(err);
+            if(err)console.log(err);
         });
     }
 })
@@ -178,21 +177,21 @@ MaterialRouter.post('/createFolder',getUser,async(req,res)=>{
 
 MaterialRouter.post('/deleteFile',getUser,async(req,res)=>{
     try{
-        const {activeUser,materialId,path,type='file'} = req.body;
+        const {activeUser,materialId,path,type='file',fileName} = req.body;
         const user = await User.findById(activeUser._id);
         const material = await Material.findById(materialId);
         if(!material)return res.status(400).send({msg:"You have provided the wrong material id."});
         if(!user || user._id.toString()!==material.creator._id.toString())return res.status(400).send({msg:"You don't have right to delete other's material."})
         const cloudPath = `${user._id}/${material._id}/${path}`
         if(type==='folder'){
-            const failed = await deleteFolder(cloudPath);
+            const failed = await deleteFolder(cloudPath+`/${fileName}`);
             if(failed.length===0){
                 return res.status(200).send({msg:"Successfully deleted all files within the folder"})
             }else{
                 return res.status(500).json(failed);
             }
         }else{
-            const result = await deleteFile(cloudPath);
+            const result = await deleteFile(cloudPath,fileName);
             if(result.ok){
                 return res.status(200).send({msg:"Successfully deleted the files"})
             }else{
