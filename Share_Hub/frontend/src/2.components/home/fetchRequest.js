@@ -1,8 +1,5 @@
-import {Cookies} from "react-cookie";
+import {token, url} from "../globle";
 
-const url = "http://localhost:8080"
-const cookies = new Cookies();
-const token = cookies.get('token');
 export const getMaterials = async()=>{
     try{
         const res = await fetch(url+'/material/get',{
@@ -109,6 +106,22 @@ export const joinMaterialRequest = async (materialCode)=>{
                 "Content-Type":"application/json"
             },
             body:JSON.stringify({materialCode,token})
+        });
+        const data = await res.json();
+        return {res,data};
+    }catch (e) {
+        console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
+    }
+}
+export const deleteMaterialReq=async (materialId)=>{
+    try{
+        const res = await fetch(url+'/material/deleteMaterial',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({materialId,token})
         });
         const data = await res.json();
         return {res,data};

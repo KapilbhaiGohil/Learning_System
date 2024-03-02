@@ -2,15 +2,23 @@ import {useNavigate, useParams} from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import "../3.styles/material.scss"
 import {FileInfo, FileStructure, FolderInfo, FolderStructure, Path} from "../2.components/material/component";
-import {deleteFiles, getFilesList, getMaterialById, getPathAsString} from "../2.components/material/fetchRequest";
+import {
+    deleteFiles,
+    downloadFilesReq,
+    getFilesList,
+    getMaterialById,
+    getPathAsString
+} from "../2.components/material/fetchRequest";
 import {useContext, useEffect, useState} from "react";
 import FileViewer from "../2.components/material/FileViewer";
 import LoadingBar from "react-top-loading-bar";
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import {Checkbox} from "@mui/material";
-import {$borderColor, $lightBlue} from "../2.components/globle";
+import {$blueColor, $borderColor, $lightBlue} from "../2.components/globle";
 import {Context} from "../Context";
+import {CircularProgress} from "@mui/joy";
+import {CustomCircularProgress} from "../2.components/home/components";
 
 export default function Material(){
     const [progress,setProgress] = useState(0);
@@ -21,18 +29,19 @@ export default function Material(){
     const [noSelected,setNoSelected] = useState(0);
     const [checked,setChecked] = useState(false);
     const [isFileScreen,setIsFileScreen] = useState({isFile:false,file:''});
+    const [action,setAction] = useState({downloading:false,deleting:false});
     const navigate = useNavigate();
     const {id} = useParams();
     const {activeUser} = useContext(Context);
 
     useEffect(() => {
         async function func(){
-            setProgress(progress+30);
+            setProgress(20);
             let {res,data} = await getMaterialById(id);
             if(res.ok){
                 setMaterial(data);
                 setPathArray([{name:data.name,type:'folder'}]);
-                setProgress(100)
+                setProgress(prevState => prevState+20);
             }else{
                 navigate('/home');
             }
@@ -71,12 +80,10 @@ export default function Material(){
                 }else{
                     navigate('/home')
                 }
-
             }
         }
         func();
     }, [material,pathArray]);
-    
     const showFile=(e,file,fromStructure=false,prefix=undefined)=>{
         setIsFileScreen({isFile: true,file});
         let temp = [];
@@ -112,20 +119,59 @@ export default function Material(){
         if(noSelected===files.total)setChecked(true);
         else setChecked(false);
     }, [noSelected===files.total]);
-    // useEffect(() => {
-    //     setChecked(false);
-    // }, [files]);
     const deleteFilesEvent=async (e)=>{
-        setProgress(prevState => prevState+10)
+        const bool = window.confirm('Website is still in development phase. You can\'t retrieve the file once it is deleted. Are you sure to delete?');
+        if(bool){
+            setAction({...action,['deleting']: true});
+            setProgress(30);
+            let path = getPathAsString(pathArray,1);
+            const failed1 = await deleteFiles(path,files.files,material._id,'file',setProgress,files.total)
+            const failed2 = await deleteFiles(path,files.folders,material._id,'folder',setProgress,files.total)
+            if(failed1.length + failed2.length!==0)window.alert(`${failed2.length+failed1.length} files not deleted due to internal error`)
+            setAction({...action,['deleting']: false});
+            setPathArray([...pathArray]);
+        }
+    }
+    const downloadFilesEvent=async(e)=>{
+        setAction({...action,['downloading']: true});
         let path = getPathAsString(pathArray,1);
-        const failed1 = await deleteFiles(path,files.files,material._id,'file',setProgress,files.total)
-        const failed2 = await deleteFiles(path,files.folders,material._id,'folder',setProgress,files.total)
-        if(failed1.length + failed2.length!==0)window.alert(`${failed2.length+failed1.length} files not deleted due to internal error`)
-        setPathArray([...pathArray]);
+        const selectedFiles = files.files.filter(f=>f.selected && f.name!=='folder_storing_purpose.txt');
+        const selectedFolders = files.folders.filter(f=>f.selected);
+        const ele = document.getElementById('zipFileName');
+        let res,fileName = ele && ele.value.length>0 ? ele.value : 'UnknownStudyFiles.zip';
+        if(selectedFiles.length===0 && selectedFolders.length===1){
+            fileName = selectedFolders[0].name;
+        }
+        if(ele)ele.value = '';
+        setProgress(prevState => prevState+30)
+        if(selectedFiles.length===1 && selectedFolders.length===0){
+            res = await fetch(selectedFiles[0].url);
+            fileName = selectedFiles[0].name;
+        }else{
+            const response = await downloadFilesReq(path,selectedFiles,selectedFolders,material._id,false);
+            res = response.res;
+        }
+        setProgress(prevState => prevState+30)
+        if(res.ok){
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }else{
+            console.log(res);
+            window.alert("Error while downloading files.")
+        }
+        setProgress(100)
+        setAction({...action,['downloading']: false});
     }
     return(
         <>
-            <LoadingBar color={'#2f81f7'} progress={progress} loaderSpeed={1000}
+            <LoadingBar color={$blueColor} progress={progress} loaderSpeed={1000}
                          onLoaderFinished={() => setProgress(0)}/>
             <div className={'material-outer'}>
                 <div className={'material-structure'}>
@@ -142,7 +188,7 @@ export default function Material(){
                 </div>
                 <div className={'material-screen'}>
                     <div className={'material-screen-path'}>
-                       <Path material={material} setPathArray={setPathArray} pathArray={pathArray}></Path>
+                       <Path material={material} setPathArray={setPathArray}   pathArray={pathArray}></Path>
                     </div>
                     <div className={'material-screen-info'}>
                         <div className={'material-screen-heading'}>
@@ -152,10 +198,14 @@ export default function Material(){
                             {!isFileScreen.isFile && files.total>0 && <div className={'material-screen-heading-options'}>
                                 {noSelected > 0 &&
                                     <>
-                                        {activeUser._id === material.creator &&
-                                            <TextWithIcon text={'Delete'} onClick={deleteFilesEvent} Icon={DeleteIcon}/>
+                                        {activeUser._id === material.creator && (action.deleting ? <TextButtonWithCircularProgress text={'Deleting...'}/>:
+                                            <TextButtonWithIcon text={'Delete'} disabled={action.downloading}  onClick={deleteFilesEvent} Icon={DeleteIcon}/>)
                                         }
-                                        <TextWithIcon text={'Download'} Icon={DownloadIcon}/>
+                                        {noSelected > 1 &&
+                                            <input placeholder={'Enter name of zip file'} id={'zipFileName'}
+                                                style={{marginRight: "0.5rem"}}/>}
+                                        {action.downloading ?  <TextButtonWithCircularProgress  text={'Downloading...'}/> : <TextButtonWithIcon disabled={action.deleting} text={'Download'} onClick={downloadFilesEvent}
+                                                       Icon={DownloadIcon}/>}
                                     </>
                                 }
                                 <Checkbox checked={checked} onChange={onSelection} size={'medium'} color={'primary'}
@@ -165,9 +215,7 @@ export default function Material(){
                         {pathArray.length >= 1 && pathArray[pathArray.length-1].type==='folder' && <FolderInfo folder={{name:'. .',type:'folder'}} setPathArray={setPathArray}/>}
                         {!isFileScreen.isFile && files.folders.map((folder,i)=><FolderInfo setFiles={setFiles} setNoSelected={setNoSelected} key={i} folder={folder} setPathArray={setPathArray}/>)}
                         {!isFileScreen.isFile  && files.files.map((file,i)=><FileInfo setNoSelected={setNoSelected} setFiles={setFiles} showFile={showFile} key={i}  file={file}/>)}
-                        {isFileScreen.isFile &&
-                            <FileViewer pathArray={pathArray} file={isFileScreen.file} setIsFileScreen={setIsFileScreen}/>
-                        }
+                        {isFileScreen.isFile && <FileViewer pathArray={pathArray} file={isFileScreen.file} setIsFileScreen={setIsFileScreen}/>}
                     </div>
                 </div>
             </div>
@@ -175,11 +223,21 @@ export default function Material(){
     )
 }
 
-export  function TextWithIcon({text,Icon,onClick}){
+export  function TextButtonWithIcon({text,disabled,Icon,onClick}){
     return(
         <>
-            <div onClick={onClick} className={'text-with-icon'}>
-                <Icon/>
+            <div onClick={onClick} style={disabled ? {cursor:"not-allowed"}:{}} className={'text-with-icon'}>
+                {Icon && <Icon/>}
+                <span>{text}</span>
+            </div>
+        </>
+    )
+}
+export  function TextButtonWithCircularProgress({text}){
+    return(
+        <>
+            <div style={{cursor:"not-allowed"}} className={'text-with-icon'}>
+                <CustomCircularProgress progressSize={'20px'} precentage={70} progressColor={$blueColor} trackColor={'transparent'} />
                 <span>{text}</span>
             </div>
         </>

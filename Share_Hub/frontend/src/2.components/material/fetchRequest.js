@@ -1,9 +1,4 @@
-import {Cookies} from "react-cookie";
-
-const url = "http://localhost:8080"
-const cookies = new Cookies();
-const token = cookies.get('token');
-
+import {token, url} from "../globle";
 export const getMaterialById=async (materialId)=>{
     try{
         const res = await fetch(url+'/material/getMaterialById',{
@@ -83,6 +78,21 @@ export const deleteFileRequest=async (path,materialId,type,fileName)=>{
         return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
+export async function downloadFilesReq(path,files,folders,materialId,fullDownload=false){
+    try{
+        const res = await fetch(url+'/material/download',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({path,token,materialId,files,folders,fullDownload})
+        });
+        return {res};
+    }catch (e) {
+        console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
+    }
+}
 export function getPathAsString(pathArray,start=0){
     let str = "";
     for (let i = start; i < pathArray.length; i++) {
@@ -94,6 +104,7 @@ export async function getFileContentAsText(filepath){
     const res = await fetch(filepath)
     return await res.text();
 }
+
 export async function deleteFiles(path,array,materialId,type='file',setProgress,total){
     const failed = [];
     for (let i = 0; i < array.length; i++) {

@@ -1,20 +1,19 @@
 import {CommentScreen, CreateMaterialForm, GetMaterialForm, MaterialCard} from '../2.components/home/components'
 import '../3.styles/globle.scss'
 import '../3.styles/home.scss'
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import SearchIcon from '@mui/icons-material/Search';
-import {useNavigate} from "react-router-dom";
 import {getMaterials} from "../2.components/home/fetchRequest";
-import {Skeleton} from "@mui/material";
 import LoadingBar from "react-top-loading-bar";
-
+import {ShareScreen} from "../2.components/home/components-1";
+import noDataFound from '../5.assets/no data found.jpg'
+import {Context} from "../Context";
 export default function Home(){
     const [materials,setMaterials] = useState([]);
     const [error,setError] = useState({msg:''});
     const [screen,setScreen] = useState({msg:""});
     const [progress,setProgress] = useState(0);
-    const navigate = useNavigate();
-
+    const {refresh} = useContext(Context)
     //material fetching
     useEffect(()=>{
         async function func(){
@@ -31,9 +30,8 @@ export default function Home(){
             setProgress(100);
         }
         func();
-    },[])
+    },[refresh])
     const commentOnclick=(materialObj,index)=>{
-        console.log(materialObj)
         setScreen({msg:"comment",data:materialObj,index,updateMaterial});
     }
     const getMaterialClick=()=>{
@@ -45,8 +43,10 @@ export default function Home(){
     const updateMaterial=(materialObj,index)=>{
         let temp = [...materials];
         temp.splice(index,1,materialObj);
-        console.log("updated",temp)
         setMaterials((prev)=>{return temp;});
+    }
+    const shareOnClick=(e,material)=>{
+        setScreen({msg:'shareScreen',data:{material}});
     }
     return (
         <>
@@ -59,12 +59,11 @@ export default function Home(){
                     </div>
                 </div>
                 <div className={'home-materials'}>
-                    {/*<Skeleton variant="rectangular" className={'material-card-outer'} width={'29.9rem'} height={'11rem'}/>*/}
-                    {materials.length>0 ? materials.map((m,i)=><MaterialCard key={m._id} index={i} updateMaterial={updateMaterial} commentOnclick={commentOnclick} setScreen={setScreen} materialObj={m}/>):
+                    {materials.length>0 ? materials.map((m,i)=><MaterialCard key={m._id} setProgress={setProgress} setMaterials={setMaterials} shareOnClick={shareOnClick} index={i} updateMaterial={updateMaterial} commentOnclick={commentOnclick} setScreen={setScreen} materialObj={m}/>):
                         <>
-                            <div>
-                            <div>No material found</div>
-                            <div>You can create a new one</div>
+                            <div className={'home-materials-nomaterials'}>
+                                <div>No material found</div>
+                                <div>You can create a new one</div>
                             </div>
                         </>}
                 </div>
@@ -76,6 +75,7 @@ export default function Home(){
                     {screen.msg==='comment' && <CommentScreen commentOnClick={commentOnclick} screen={screen} setScreen={setScreen}/>}
                     {screen.msg==='createMaterial' && <CreateMaterialForm setMaterials={setMaterials} setScreen={setScreen}/>}
                     {screen.msg==='getMaterial' && <GetMaterialForm setMaterials={setMaterials} setScreen={setScreen}/>}
+                    {screen.msg==='shareScreen' && <ShareScreen setScreen={setScreen} screen={screen}/>}
                 </div>
             </div>
 

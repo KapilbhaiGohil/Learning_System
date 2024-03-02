@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const category = ['Owner','Editor','Viewer'];
+const category = ['Owner','Editor','Viewer','Collaborator'];
 const userSchema = new mongoose.Schema(
     {
         email:{type:String,required:true,unique:true,trim:true},

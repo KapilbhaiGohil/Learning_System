@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, {mongo} from "mongoose";
 const materialSchema = new mongoose.Schema(
     {
         creator:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},
@@ -24,3 +24,16 @@ const commentSchema = new mongoose.Schema(
     }
 )
 export const Comment = mongoose.model('Comment',commentSchema);
+
+const categories = ['Invitation','News','Html'];
+const notificationSchema = new mongoose.Schema(
+    {
+        by:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},
+        to:{type:mongoose.Schema.Types.ObjectId,ref:'User'},
+        category:{type:String,enum:categories,required:true},
+        fields:{type:mongoose.Schema.Types.Mixed,required:true},
+        toAll:{type:Boolean,default:false},
+        seen:{type:Boolean,default:false}
+    }
+)
+export const NotificationCollection = mongoose.model('Notification',notificationSchema);

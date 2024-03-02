@@ -2,7 +2,8 @@
 
 // style for the topic component
 .home-outer{
-    margin: 1rem 15rem;
+    margin: 1% 15%;
+    z-index: 1;
     padding:1rem;
     display: flex;
     flex-direction: column;
@@ -13,6 +14,7 @@
         align-items: center;
         padding:1rem;
         .home-search-input{
+            //box-shadow: $boxShadow;
             width: 100%;
             position: relative;
             svg{
@@ -50,6 +52,11 @@
         &::-webkit-scrollbar{
             display: none;
         }
+        .home-materials-nomaterials{
+            img{
+
+            }
+        }
     }
     .home-buttons{
         display: flex;
@@ -67,6 +74,7 @@
 
 //style for the materialCard
 .material-card-outer{
+    //box-shadow: $boxShadow;
     height: 11rem;
     display: flex;
     flex-direction: column;

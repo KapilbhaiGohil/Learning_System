@@ -2,7 +2,6 @@ import {useEffect, useRef, useState} from "react";
 import {getFileContentAsText} from "./fetchRequest";
 import hljs from 'highlight.js'
 import 'highlight.js/styles/vs2015.css'
-import {LoadingWithText} from "./component";
 import LoadingBar from "react-top-loading-bar";
 export default function FileViewer({file,setIsFileScreen,pathArray}){
     let ext = file.name.split('.').pop().toLowerCase();

@@ -24,4 +24,18 @@ userRouter.post('/getUserByCookie',async(req,res)=>{
         return res.status(401).send({msg:"Unauthorized request - Invalid Token"})
     }
 })
+userRouter.post('/searchUserByEmailPrefix',async(req,res)=>{
+    try{
+        console.log('helo world')
+        let {activeUser,searchEmail,userIds} = req.body;
+        if(!activeUser)return res.status(400).send({msg:"This endpoint is not open for all request."});
+        const users = await User.find({ email: { $regex: new RegExp(`^${searchEmail}`, 'i') },_id:{$nin:userIds} })
+            .limit(4).lean();
+        return res.status(200).json(users);
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:"Internal server error."})
+    }
+})
+
 export {userRouter};

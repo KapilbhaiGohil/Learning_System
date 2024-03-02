@@ -1,0 +1,286 @@
+@import 'globle';
+
+
+.share-screen{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  inset: 0 0 0 0;
+  backdrop-filter: blur(20px);
+  .share-outer{
+    position: absolute;
+    top: 2rem;
+    padding: 2rem;
+    background: $navback;
+    border: 1px solid $borderColor;
+    border-radius: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    .share-heading{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid;
+      font-size: 1.3rem;
+      color: $blueColor;
+      h3{
+        font-weight: 400;
+      }
+      svg{
+        cursor: pointer;
+      }
+    }
+    .share-info{
+      color: $fontColor;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-top: 1rem;
+      .share-code{
+        p:first-child{
+          span{
+            color: $pinkColor;
+            letter-spacing: 1px;
+          }
+          font-size: 1.2rem;
+
+        }
+        p:not(:first-child){
+          margin-top: 0.4rem;
+          font-size: 13px;
+        }
+      }
+      .share-devider{
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: $golden;
+        &:before,&:after{
+          content: " ";
+          border-bottom: 1px solid $golden;
+          height: 2px;
+          display: block;
+          position: absolute;
+          top: 50%;
+          width: 47%;
+        }
+        &:before{
+          left: 0;
+        }
+        &:after{
+          right: 0;
+
+        }
+      }
+      .share-people{
+        .share-input{
+          display: flex;
+          flex-direction: column;
+          .share-input-box{
+            margin-top: 1rem;
+          }
+          .share-input-peoples{
+            border: 1px solid $borderColor;
+            height: 14rem;
+            border-radius: 0.3rem;
+            margin-top: 1rem;
+            overflow-y: scroll;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            &::-webkit-scrollbar{
+              display: none;
+            }
+            .share-input-peoples-first{
+              display: flex;
+              position: sticky;
+              top: 0;
+              justify-content: space-between;
+              background:$green;
+              >span{
+                padding: 0.5rem 1rem;
+              }
+            }
+            .share-input-peoples-list{
+              display: flex;
+              align-items: center;
+              background: $borderColor3;
+              svg{
+                cursor: pointer;
+                &:hover{
+                  fill: $blueColor;
+                }
+              }
+            }
+          }
+        }
+        .share-button{
+          margin-top: 1rem;
+        }
+      }
+    }
+  }
+}
+//sharecustome input style
+.share-custom-outer{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .share-custom{
+    position: relative;
+    width: 100%;
+    margin-right: 1rem;
+    .share-custom-input{
+      position: relative;
+      input{
+        font-size: 0.9rem;
+        height: 2.5rem;
+        &:focus{
+          outline: 1px solid $blueColor;
+          border-color: transparent;
+        }
+      }
+      .share-static{
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        height: 100%;
+        padding: 0.4rem 1rem;
+        background: $borderColor3;
+        cursor: pointer;
+        border-top-right-radius: 0.3rem;
+        border-bottom-right-radius: 0.3rem;
+        transition: all 50ms ease-in-out;
+        &:hover{
+          background: $borderColor;
+        }
+        svg{
+          margin-right: 0.3rem;
+        }
+      }
+      .share-right-options{
+        z-index: 1;
+        position: absolute;
+        top: 120%;
+        right: 0;
+        background: $navback;
+        border: 1px solid $borderColor;
+        border-radius: 0.3rem;
+        left: 60%;
+        ul{
+          padding: 0.3rem;
+          li{
+            cursor: pointer;
+            padding: 0.3rem 1rem;
+            transition: all 50ms ease-in-out;
+            border-radius: 0.3rem;
+            &:hover{
+              background: $borderColor3;
+            }
+          }
+        }
+      }
+      .search-result{
+        box-shadow: 0 0 38px 10px #000000;
+        z-index: 1;
+        min-height: 4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        background: black;
+        border: 1px solid $borderColor;
+        width: 100%;
+        margin-top: 0.3rem;
+        border-radius: 0.3rem;
+        max-height: 13rem;
+        overflow-y: scroll;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        &::-webkit-scrollbar{
+          display: none;
+        }
+      }
+      .input-people{
+        width: fit-content;
+        display: flex;
+        align-items: center;
+        background: $borderColor3;
+        cursor: pointer;
+        padding: 0.3rem 0.5rem;
+        font-size: 0.8rem;
+        border-radius: 1rem;
+        position: absolute;
+        top: 10%;
+        bottom: 10%;
+        left: 1%;
+        max-width: 55%;
+        &:hover{
+          background: $borderColor;
+        }
+        img{
+          width: 1.5rem;
+          height: 1.5rem;
+          border-radius: 1rem;
+        }
+        span{
+          margin-left: 0.7rem;
+          overflow-x: scroll;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+          &::-webkit-scrollbar{
+            display: none;
+          }
+        }
+        svg{
+          font-size: 1rem;
+          margin-left: 0.7rem;
+          &:hover{
+            color: $err;
+          }
+        }
+      }
+    }
+  }
+  .share-add-button{
+    button{
+      background: $green;
+    }
+  }
+}
+
+//style for people component
+.share-search-pic{
+  img{
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 2rem;
+    margin-right: 1.3rem;
+  }
+}
+.share-search-info {
+  h4 {
+    color: $green;
+  }
+}
+//style for searchResult component
+.share-search-outer{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: $borderColor3;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 50ms ease-in-out;
+}
+.hover-class{
+  &:hover{
+    background: $borderColor;
+  }
+}

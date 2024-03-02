@@ -1,16 +1,52 @@
 import "../3.styles/globle.scss"
 import logo from "../5.assets/finalLogo.png"
-import {useContext, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Context} from "../Context";
-import {blue} from "@mui/material/colors";
-export function Navbar(){
-    const [create,setCreate] = useState(false);
-    const getMaterial=()=>{
+import {Cookies} from "react-cookie";
+import {Block, Groups, MailOutline, Notifications} from "@mui/icons-material";
+import {fetchNotificationReq, sendResposeForInvitationReq} from "./home/fetchRequest-1";
 
-    }
-    const createMaterial=()=>{
-        setCreate(true);
+//color defined
+export const $cardBack = "#b6e2e7";
+export const $navback =  "black";
+export const $blueColor="#2f81f7";
+export const $borderColor="#373737";
+export const $fontColor="#dfdfdf";
+export const $bodyBack="#0d1117";
+export const $err="#f51717";
+export const $borderColor2="#5f5f5f";
+export const $lightBlue='#447bff';
+export const url = "http://localhost:8080"
+const cookies = new Cookies();
+export const token = cookies.get('token');
+
+export function Navbar(){
+    const [notification,setNotification] = useState({show:false,fetching:false,notifications:[]});
+    const [error,setError] = useState({msg:'',field:''})
+    const {setRefresh} = useContext(Context)
+    useEffect(() => {
+         async function helper(){
+             setError({msg:'',field:''});
+             setNotification({...notification,fetching: true});
+            const {res,data} = await fetchNotificationReq();
+            if(res.ok){
+                setNotification({...notification,fetching: false,notifications: data});
+            }else{
+                setError({msg:data.msg});
+                setNotification({...notification,fetching: false});
+            }
+        }
+        if(notification.show)helper();
+    }, [notification.show]);
+    const sendResponseForInvitation = async(joined,nid)=>{
+        const {res,data} = await sendResposeForInvitationReq(joined,nid)
+        if(res.ok){
+            setRefresh(prev=>!prev);
+            setNotification({...notification,show: false})
+        }else{
+            window.alert(data.msg);
+        }
     }
     return (
         <>
@@ -23,124 +59,44 @@ export function Navbar(){
                 </div>
                 <div className={"nav-links"}>
                     <ul>
-                        {/*<li onClick={getMaterial}>Get Material</li>*/}
-                        {/*<li onClick={createMaterial}>Create Material</li>*/}
+                        <li onClick={(e)=>{setNotification({...notification,show:!notification.show})}}>
+                            <Notifications/>
+                        </li>
                     </ul>
                 </div>
             </nav>
-            {create && <CreateMaterial setCreate={setCreate} />}
+            {notification.show && <NotificationDisplay sendResponseForInvitation={sendResponseForInvitation} notifications={notification.notifications}/>}
         </>
     )
 }
-
-export function CreateMaterial({setCreate}){
-    const {refresh,setRefresh} = useContext(Context);
-    const [data,setData] = useState({name:"",desc:""})
-    const [error,setError] = useState({msg:''});
-    const navigate = useNavigate()
-    const closeFunc=(e)=>{
-        if(e.target.id==='create' || e.target.id==='closebtn')setCreate(false);
-    }
-    const setInput = (e)=>{
-        setData({
-            ...data,[e.target.name]:e.target.value
-        });
-    }
-    const formSubmit=async(e)=>{
-        e.preventDefault();
-        setError({msg:''});
-        try{
-            const file = e.target.backImg.files[0];
-            console.log(file);
-            const formData = new FormData();
-            formData.append('name',data.name);
-            formData.append('desc',data.desc);
-            formData.append('backImg',file);
-            console.log(formData)
-            const res = await fetch('material/create',{
-                method:"post",
-                headers:{
-                    'contentType':"multipart/form-data"
-                },
-                body:formData
-            });
-            if(res.ok){
-                setCreate(false);
-                setRefresh(!refresh);
-            }else{
-                const d = await res.json();
-                setError({msg:d.msg});
-            }
-        }catch (e) {
-            console.log(e)
-            setError({msg:e.toString()})
-        }
-    }
+function NotificationDisplay({notifications,sendResponseForInvitation}){
     return(
         <>
-            <form method={'post'} onSubmit={formSubmit}>
-                <div className={'create'} id={'create'} onClick={closeFunc}>
-                    <div className={'create-outer'}>
-                        <span>Create Material</span>
-                        {error.msg.length>0 && <p style={{color: "#e80000",marginTop: "1rem",fontSize: "0.9rem"}}>{error.msg}</p>}
-                        <div>
-                            <Input label={'Name (required)'} autoComplete={'off'} name={'name'} onChange={setInput}/>
-                        </div>
-                        <div>
-                            <Input label={'Description'} autoComplete={'off'} name={'desc'} onChange={setInput}/>
-                        </div>
-                        <div>
-                            <span>Background Image : </span>
-                            <input type={'file'} accept={'image/*'} name={'backImg'}/>
-                        </div>
-                        <div className={'create-buttons'}>
-                            <button id={'closebtn'} onClick={closeFunc} style={{background:"#848484"}}>Cancel</button>
-                            <button style={{background:"rgb(7 101 168)",color:"white"}} type={'submit'}>Create</button>
-                        </div>
+            <div className={'notification-outer'}>
+                {notifications.length>0 ? notifications.map((n,i)=><InvitationNotification sendResponseForInvitation={sendResponseForInvitation} notification={n} key={i} info={n}/>):
+                    <div className={'notification-empty'}>
+                        <Block/>
+                        No notifications.
                     </div>
-                </div>
-            </form>
+                }
+            </div>
         </>
     )
 }
-export function Input({label,onChange,autoComplete,name}){
-    const [applyCss,setApplyCss] = useState(false);
-    const handleInput=(e)=>{
-        if(e.target.value.length!==0){
-            setApplyCss(true);
-        }else{
-            setApplyCss(false);
-        }
-        onChange(e);
-    }
-    let materialLabelStyle= {
-        top: "0.2rem",
-        color: "rgb(25,103,210)",
-        fontSize: "0.8rem"
-    }
-    let materialInputStyle = {
-        borderBottomColor:"rgb(25,103,210)"
-    }
+function InvitationNotification({info,notification,sendResponseForInvitation}){
     return(
         <>
-            <div  style={ applyCss ? materialInputStyle:{}} className={'material-input'}>
-                <div style={ applyCss ? materialLabelStyle:{}} className={'material-input-label'}>
-                    <span>{label}</span>
+            <div className={'invitation'}>
+                <div className={'icon-and-msg'}>
+                    <MailOutline/>
+                    <p><span>{info.by.name.substring(0,50)}</span> has invited you to join the material <span>{info.fields.material.name}</span></p>
                 </div>
-                <div className={'material-input-input'}>
-                    <input autoComplete={autoComplete} name={name} onChange={handleInput} />
+                <p>Do you want to join material ?</p>
+                <div className={'inviation-buttons'}>
+                    <button onClick={(e)=>{sendResponseForInvitation(true,notification._id)}}>join</button>
+                    <button  onClick={(e)=>{sendResponseForInvitation(false,notification._id)}} className={'close-btn'} style={{marginRight:'1rem'}}>Ignore</button>
                 </div>
             </div>
         </>
     )
 }
-//color defined
-export const $cardBack = "#b6e2e7";
-export const $navback =  "black";
-export const $blueColor="#2f81f7";
-export const $borderColor="#373737";
-export const $fontColor="#dfdfdf";
-export const $bodyBack="#0d1117";
-export const $err="#f51717";
-export const $borderColor2="#5f5f5f";
-export const $lightBlue='#447bff';

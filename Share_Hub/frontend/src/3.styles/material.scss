@@ -191,6 +191,7 @@
     }
   }
   .path-right{
+    position: relative;
     display: flex;
     align-items: center;
     .path-add-file{
@@ -216,10 +217,11 @@
       svg{font-size: 1.2rem;}
     }
     .path-add-file-extension{
+      width: 155%;
+      top: 120%;
+      right: 0%;
       z-index: 3;
       position: absolute;
-      top: 2.3rem;
-      right: 2.45rem;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -313,9 +315,6 @@
           top: 0;
           background: $borderColor3;
           border-bottom: 1px solid $borderColor;
-          >div > span > svg > circle:first-child {
-            stroke: black;
-          }
         }
           span{
             padding: 0.3rem 1rem;
@@ -421,6 +420,7 @@
 
 //create folder component style
 .create-folder{
+  z-index: 1;
   position: absolute;
   inset: 0 0 0 0 ;
   backdrop-filter: blur(20px);
@@ -460,6 +460,15 @@
       margin-top: 1rem;
       .close-btn{
         margin-right: 1rem;
+        &:disabled{
+          pointer-events: unset;
+          cursor:  not-allowed;
+        }
+      }
+      button[disabled]:not(.close-btn){
+        pointer-events: unset;
+        background: $blueColor;
+        cursor:  not-allowed;
       }
     }
   }
@@ -477,6 +486,9 @@
   margin-right: 1rem;
   &:hover{
     background-color: $borderColor;
+  }
+  >span{
+    margin-right: 0.4rem;
   }
   svg{
     font-size: 1.35rem;

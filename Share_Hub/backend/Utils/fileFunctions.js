@@ -39,7 +39,12 @@ export async function createFolder(cloudPath){
 export async function getDownloadUrlPath(cloudPath){
     return await getDownloadURL(ref(storage,cloudPath));
 }
-async function helper(cloudpath,root){
+export  function getDownloadUrlPathUsingManulMaking(cloudPath,alt){
+    const encodedPath = encodeURIComponent(cloudPath);
+    const url = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${encodedPath}?alt=${alt || 'media'}`;
+    return url;
+}
+async function helper(cloudpath){
     const listResult = await listAll(ref(storage,cloudpath));
     let failed = [];
     for(const file of listResult.items){
@@ -51,7 +56,7 @@ async function helper(cloudpath,root){
         }
     }
     for (const folder of listResult.prefixes){
-        let temp = await helper(cloudpath+'/'+folder.name,root);
+        let temp = await helper(cloudpath+'/'+folder.name);
         failed = [...failed,...temp];
     }
     return failed;
@@ -72,6 +77,24 @@ export async function deleteFile(cloudPath,fileName){
     }catch (e) {
         return {ok:false,msg:e.message,error:e};
     }
+}
+export async function getFilesFromFolder(pathToFolder){
+    const listResult = await listAll(ref(storage,pathToFolder));
+    let files = [];
+    for(const file of listResult.items){
+        try{
+            if(file.name !== 'folder_storing_purpose.txt'){
+                files.push({path:pathToFolder+'/',name:file.name,downloadUrl:await getDownloadURL(ref(storage,pathToFolder+`/${file.name}`))});
+            }
+        }catch (e) {
+            console.log(e);
+        }
+    }
+    for (const folder of listResult.prefixes){
+        let temp = await helper(pathToFolder+'/'+folder.name);
+        files = [...files,...temp];
+    }
+    return files;
 }
 export async function listFilesAndDirs(cloudPath){
     const storageRef = ref(storage,cloudPath)

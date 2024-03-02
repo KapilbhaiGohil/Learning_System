@@ -5,14 +5,16 @@ import {Material,Comment} from "../Models/Material.js";
 import {getUser, upload,} from "../middleware/midllewares.js";
 import {
     createFolder,
-    deleteFile, deleteFolder,
+    deleteFile, deleteFolder, getDownloadUrlPathUsingManulMaking, getFilesFromFolder,
     listFilesAndDirs,
     uploadFile,
 } from "../Utils/fileFunctions.js";
 import fs from "fs";
 import bodyParser from 'body-parser';
-import {firebaseConfig} from "../Utils/firebaseConfig.js";
 import otpGenerator from "otp-generator";
+import AdmZip from 'adm-zip'
+import Path from 'path'
+import {NotificationCollection} from "../Models/Material.js";
 const MaterialRouter = express.Router()
 MaterialRouter.use(express.json())
 MaterialRouter.use(bodyParser.json())
@@ -134,7 +136,7 @@ MaterialRouter.post('/getMaterialById',getUser,async(req,res)=>{
             _id:activeUser._id,
             'materials.material': materialId
         });
-        if(!user)return res.status(200).send({msg:"This material does not belongs to you try with another one"});
+        if(!user)return res.status(400).send({msg:"This material does not belongs to you try with another one"});
         const material = await Material.findOne({_id:materialId});
         return res.status(200).json(material);
     }catch (e){
@@ -149,7 +151,7 @@ MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=
         let cloudPath = activeUser._id+'/'+initialPath+'/';
         if(manualPath)cloudPath+=manualPath+'/';
         await uploadFile(req.file,cloudPath);
-        // await new Promise(resolve => setTimeout(resolve, 1500));
+        // await new Promise(resolve => setTimeout(resolve, 15000));
         return res.status(200).send({msg:"file uploaded successfully"});
     }catch (e) {
         console.log(e);
@@ -174,7 +176,46 @@ MaterialRouter.post('/createFolder',getUser,async(req,res)=>{
         return res.status(500).send({msg:e.message});
     }
 })
-
+MaterialRouter.post('/download',getUser,async(req,res)=>{
+    try{
+        const {activeUser,path,files,folders,materialId,fullDownload} = req.body;
+        const material = await Material.findById(materialId);
+        if(!material)return res.status(400).send({msg:"Pls provide the correct material id"});
+        let check = material.users.filter((u)=>u._id.toString()===activeUser._id.toString());
+        if(check < 0 )return res.status(400).send({msg:"You don't have access to the material"});
+        let initialPath = `${material.creator._id}/${material._id}/${path}`;
+        let finalFiles = [];
+        for (let i = 0; i < files.length; i++) {
+            finalFiles.push({path:initialPath,name:files[i].storedName,downloadUrl:files[i].url})
+        }
+        for (let i = 0; i < folders.length; i++) {
+            finalFiles = finalFiles.concat(...(await getFilesFromFolder(initialPath+folders[i].name)));
+        }
+        //finalFiles for zipping
+        // console.log(finalFiles)
+        const zip = new AdmZip();
+        for(const file of finalFiles){
+            const ext = Path.extname(file.name);
+            const fileName = file.name.slice(0,-24-ext.length)+ext;
+            const relativePath = file.path.substr(initialPath.length+1,file.path.length);
+            const fileData = await fetch(file.downloadUrl).then(res=>res.arrayBuffer());
+            if (!zip.getEntry(relativePath + fileName)) {
+                zip.addFile(relativePath + fileName, Buffer.from(fileData));
+            } else {
+                zip.addFile(relativePath+file.name,Buffer.from(fileData));
+            }
+        }
+        const zipBuffer = zip.toBuffer();
+        res.set({
+            'Content-Type': 'application/zip',
+            'Content-Disposition': 'attachment; filename="UnknownStudyFiles.zip"',
+        });
+        return res.status(200).send(zipBuffer);
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:e.message,e})
+    }
+})
 MaterialRouter.post('/deleteFile',getUser,async(req,res)=>{
     try{
         const {activeUser,materialId,path,type='file',fileName} = req.body;
@@ -204,6 +245,7 @@ MaterialRouter.post('/deleteFile',getUser,async(req,res)=>{
         return res.status(500).send({msg:"Internal server error."})
     }
 })
+
 MaterialRouter.post('/getFilesList',getUser,async(req,res)=>{
     try{
           const {activeUser,path,materialId} = req.body;
@@ -217,7 +259,35 @@ MaterialRouter.post('/getFilesList',getUser,async(req,res)=>{
         return res.status(500).send({msg:e.toString()})
     }
 })
-
+MaterialRouter.post('/deleteMaterial',getUser,async(req,res)=>{
+    try{
+        const {activeUser,materialId} = req.body;
+        if(!materialId)return res.status(400).send({msg:"All fields are mandatory"})
+        const material = await Material.findById(materialId)
+        if(!material)return res.status(400).send({msg:"Invalid field values provided"});
+        if(material.creator.toString()!==activeUser._id.toString())return res.status(400).send({msg:"You don't have access to delete material"})
+        const cloudPath =  `${activeUser._id}/${material._id}`
+        const failed = await deleteFolder(cloudPath);
+        if(failed.length===0){
+            const creator = await User.findById(activeUser._id);
+            let users = [...material.users,creator];
+            for (let i = 0; i < users.length; i++) {
+                const user = await User.findById(users[i]._id);
+                user.materials = user.materials.filter(m=>m.material._id.toString()!==material._id.toString());
+                await user.save();
+            }
+            await NotificationCollection.deleteMany({category:'Invitation','fields.material':material._id})
+            await Material.findByIdAndDelete(material._id);
+            const fullUser = await User.findById(activeUser._id).populate('materials.material');
+            return res.status(200).json(fullUser.materials);
+        }else{
+            return res.status(500).json(failed);
+        }
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:e.message,e})
+    }
+})
 MaterialRouter.post('/addComment',getUser,async(req,res)=>{
     try{
         const {materialId,activeUser,msg}=req.body;
@@ -244,14 +314,73 @@ MaterialRouter.post('/getComments',getUser,async(req,res)=>{
         const cids = material.comments;
         let comments = await Comment.find({_id:{$in:cids}}).populate('by').lean();
         for (let i = 0; i < comments.length; i++) {
-            const profilePicPath = encodeURIComponent(`${comments[i].by._id}/profilePic.png`);
-            const profilePicUrl = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${profilePicPath}?alt=media`;
-            comments[i].profilePic = profilePicUrl;
+            comments[i].profilePic = getDownloadUrlPathUsingManulMaking(`${comments[i].by._id}/profilePic.png`,'media');
         }
         return res.status(200).json(comments);
     }catch (e){
         console.log(e);
         return res.status(500).send({msg:e.message});
+    }
+})
+MaterialRouter.post('/sendInvitation',getUser,async(req,res)=>{
+    try{
+        const {activeUser,peoples,materialId} = req.body;
+        if(!peoples || !materialId)return res.status(400).send({msg:"User selection required to which you are sharing material."})
+        const material = await Material.findById(materialId);
+        if(!material)return res.status(400).send({msg:"invalid request for seding the invitation."});
+        const newNotifications = peoples.map(async(p)=>{
+            let exist = await User.findById(p._id);
+            if(!exist){
+                let user = await new User({_id:p._id,email:p.email,name:p.name})
+                await user.save();
+            }
+            let pending = await NotificationCollection.findOneAndUpdate(
+                { by: activeUser._id, to: p._id, category: 'Invitation' },
+                { $set: { fields: {access: p.access ,material:material._id}}},
+                { upsert: true, returnDocument: 'after' }
+            );
+        });
+        return res.status(200).send({msg:`Invitation for joining material sended to ${peoples.length} users.`});
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:e.message,e})
+    }
+})
+MaterialRouter.post('/getNotifications',getUser,async(req,res)=>{
+    try{
+        const {activeUser} = req.body;
+        const notifications = await NotificationCollection.find({$or:[{to:activeUser._id},{toAll:true}]})
+            .populate({path:'by',select:'name'}).populate({path:'to',select:'name'}).populate({path:'fields.material',select:'name',model:'Material'});
+        return res.status(200).json(notifications);
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:e.message,e})
+    }
+})
+MaterialRouter.post('/responseForInvitation',getUser,async(req,res)=>{
+    try{
+        const {activeUser,joined=false,notificationId} = req.body;
+        const notification = await NotificationCollection.findById(notificationId).populate({path:'fields.material',select:'code'});
+        if(!notification)return res.status(400).send({msg:"Something wrong happend with the request."})
+        if(activeUser._id.toString()!==notification.to.toString())return res.status(400).send({msg:"Receiver has share the material to someone else"});
+        //redirect to addmaterial with role and materialcode
+
+        if(joined){
+            let material = await Material.findById(notification.fields.material._id);
+            let user = await User.findById(activeUser._id);
+            if(!material)return res.status(400).send({msg:`No material found`})
+            let alreadyHas = await User.find({_id:user._id,'materials.material._id': material._id});
+            if(alreadyHas.length>0)return res.status(409).send({msg:"Material is already in your list."})
+            user.materials.push({material:material._id,role:notification.fields.access});
+            material.users.push(user._id);
+            await user.save();
+            await material.save();
+        }
+        await NotificationCollection.findByIdAndDelete(notificationId);
+        return res.status(200).send({msg:"Successfull"});
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:e.message,e})
     }
 })
 MaterialRouter.post('/likeComment',getUser,async(req,res)=>{

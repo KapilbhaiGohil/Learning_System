@@ -1,9 +1,8 @@
 import {
     FolderRounded,
-    FolderOpenRounded,
     InsertDriveFileOutlined,
     CloudUploadOutlined,
-    ChevronRightRounded, AddOutlined, MoreHorizOutlined, CreateNewFolder, DoNotDisturbOutlined, CheckBox
+    ChevronRightRounded, AddOutlined, CreateNewFolder, DoNotDisturbOutlined
 } from '@mui/icons-material';
 import fopen from "../../5.assets/folderOpen.svg"
 import {useContext, useEffect, useState} from "react";
@@ -11,12 +10,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import {createFolderReq, getFilesList, getPathAsString, uploadFile} from "./fetchRequest";
 import {Cookies} from "react-cookie";
 import {Context} from "../../Context";
-import {CircularProgress} from "@mui/joy";
 import {useNavigate} from "react-router-dom";
-import {Checkbox} from "@mui/material";
-import {grey} from "@mui/material/colors";
-import {$blueColor, $borderColor, $borderColor3, $err, $fontColor, $lightBlue} from "../globle";
+import {Checkbox, LinearProgress} from "@mui/material";
+import {$blueColor, $borderColor, $err, $lightBlue} from "../globle";
 import LoadingBar from "react-top-loading-bar";
+import {CustomCircularProgress} from "../home/components";
 
 export function FolderStructure({allFiles,setAllFiles,pathArray,showFile,setProgress,setPathArray,folder,prefix,material,depth}){
     const [isOpen,setIsOpen] = useState(false);
@@ -275,9 +273,9 @@ export function Path({material,pathArray,setPathArray}){
                             <span>Create Folder</span>
                         </div>
                     </div>}
-                    <div className={'path-options'}>
-                        <MoreHorizOutlined/>
-                    </div>
+                    {/*<div className={'path-options'}>*/}
+                    {/*    <MoreHorizOutlined/>*/}
+                    {/*</div>*/}
                 </div>
             </div>
             {uploadScreen && <UploadScreen uploadFileClick={uploadFileClick} setPathArray={setPathArray} pathArray={pathArray} material={material}/>}
@@ -288,6 +286,7 @@ export function Path({material,pathArray,setPathArray}){
 export function CreateFolder({addFolderClick,pathArray,material,setPathArray}){
     const [error,setError]  = useState({msg:'',field:''})
     const [folderName,setFolderName] = useState('');
+    const [action,setAction] = useState({creating:false});
     const folderNameChange=(e)=>{
         setFolderName(e.target.value);
         if(error.msg.length>0)setError({msg:'',field: ''});
@@ -305,6 +304,7 @@ export function CreateFolder({addFolderClick,pathArray,material,setPathArray}){
         setTimeout(()=>{ ele.style.top = "0";},10);
     }, []);
     const createFolder=async (e)=>{
+        setAction({creating: true})
         const path = getPathAsString(pathArray,1);
         const {res,data} = await createFolderReq(path,material,folderName);
         if(res.ok){
@@ -313,11 +313,14 @@ export function CreateFolder({addFolderClick,pathArray,material,setPathArray}){
         }else{
             setError({msg:data.msg,field:''});
         }
+        setAction({creating: false})
     }
     return(
         <>
             <div id={'create-folder'} className={'create-folder'}>
                 <div className={'create-folder-outer'}>
+                    {action.creating && <LinearProgress
+                        sx={{position: "absolute", inset: "0 0 0 0", height: "2px", background: "transparent"}}/>}
                     <div className={'create-folder-heading'}>
                         <h4>Create new folder</h4>
                     </div>
@@ -326,8 +329,10 @@ export function CreateFolder({addFolderClick,pathArray,material,setPathArray}){
                         {error.msg.length>0 && <p className={'error-msg'}>{error.msg}</p>}
                     </div>
                     <div className={'create-folder-buttons'}>
-                        <button onClick={createFolder}>Create</button>
-                        <button className={'close-btn'} onClick={closeScreen}>Close</button>
+                        {action.creating ?
+                            <button disabled={true}><CustomCircularProgress precentage={70} trackColor={'transparent'} progressColor={'black'}/></button>
+                            : <button onClick={createFolder} >Create</button>}
+                        <button className={'close-btn'} disabled={action.creating} onClick={closeScreen}>Close</button>
                     </div>
                 </div>
             </div>
@@ -346,7 +351,7 @@ async function uploadFilesHelper(material,pathArray,setProgress,files,setUpload,
         filesData.append('initialPath',initialPath);
         filesData.append('token',token);
         if(files[i].manualPath)filesData.append('manualPath',files[i].manualPath);
-        setUpload({state: true,curr: `${files[i].manualPath}${files[i].name}`,uploadOver: 'start'});
+        setUpload({state: true,curr: `${(files[i].manualPath || '')}${files[i].name}`,uploadOver: 'start'});
         const {res,data} = await uploadFile(filesData);
         setFileUploading(prev=>[{manualPath:files[i].manualPath,status:res.ok,name:files[i].name},...prev]);
         if(!res.ok){
@@ -365,7 +370,8 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
         let ele = document.getElementById('upload');
         ele.style.transition="all 0.4s";
         ele.style.top = "100%";
-        setTimeout(()=>{uploadFileClick(); setPathArray((prev)=>[...prev]);},400);
+        setTimeout(()=>{
+            uploadFileClick(); if(fileUploading.length!==0)setPathArray((prev)=>[...prev]);},400);
     }
     useEffect(() => {
         let ele = document.getElementById('upload');
@@ -440,7 +446,6 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
             setFailed(prev=>{
                 if(prev.length===0){
                     setFiles([]);
-                    // uploadFileClick();
                 }
                 return prev;
             })
@@ -476,8 +481,8 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
                     <div className={'upload-control'}>
                         <div className={'upload-buttons'}>
                             <button className={'close-btn'} onClick={closeScreen}>Close</button>
-                            <button onClick={(e)=>uploadFilesClick(e,upload.uploadOver==='completed' && failed.length>0)} disabled={upload.state}>
-                                {upload.state ?<CircularProgress sx={{"--CircularProgress-size":"22px"}} className={'circularProgress'} thickness={1.4}  size={"sm"} variant={'soft'}  color={'primary'}/>
+                            <button style={{display:"flex",justifyContent:"center",alignItems:"center"}} onClick={(e)=>uploadFilesClick(e,upload.uploadOver==='completed' && failed.length>0)} disabled={upload.state}>
+                                {upload.state ? <CustomCircularProgress precentage={70} trackColor={'transparent'} progressColor={'black'}/>
                                     : upload.uploadOver==='completed' && failed.length>0 ?
                                     'Upload (failed)':
                                     'Upload'
@@ -497,7 +502,7 @@ function UploadBox({files,removeFile,label,loader,currFile}){
                 <div className={'upload-input'}>
                     {loader &&
                         <div style={{display:'flex',alignItems:'center',paddingLeft:'1rem'}}>
-                            <CircularProgress sx={{"--CircularProgress-size":"22px"}} className={'circularProgress'} thickness={1.4}  size={"sm"} variant={'soft'}  color={'primary'}/>
+                            <CustomCircularProgress progressColor={$blueColor} precentage={70}  trackColor={'transparent'}/>
                             <span style={{paddingLeft:'0',color:$blueColor}}>{label}</span>
                             <span style={{paddingLeft:'0'}}>{currFile.substring(0,55)} {currFile.length>55 && '....'}</span>
                         </div>
@@ -528,12 +533,12 @@ export function UploadedFile({removeFile,file,index,color}){
         </>
     )
 }
-export function LoadingWithText({text,circularProgressClassStyle,spanStyle,progressBarStyle}){
+export function LoadingWithText({text}){
     return(
         <>
-            <div style={{...circularProgressClassStyle}} className={'circularProgress'}>
-                <CircularProgress style={{...progressBarStyle}} sx={{"--CircularProgress-size":"20px"}} thickness={2} size={"sm"} variant={'soft'}  color={'neutral'}/>
-                <span style={{...spanStyle}}>{text}</span>
+            <div  className={'circularProgress'}>
+                <CustomCircularProgress progressSize={'20px'} precentage={70} trackColor={'transparent'} thickness={2} size={"sm"} variant={'soft'}  color={'neutral'}/>
+                <span >{text}</span>
             </div>
         </>
     )
@@ -556,7 +561,9 @@ export function DrageArea({fileInput,handleDragEOL,handleDrop,disabled}){
     )
 }
 export function FolderOpenLogo(){
-    return<>
-        <img src={fopen} style={{width:"1.2rem"}}/>
-    </>
+    return(
+        <>
+            <img src={fopen} style={{width:"1.2rem"}}/>
+        </>
+    )
 }
