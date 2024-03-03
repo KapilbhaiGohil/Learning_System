@@ -7,7 +7,7 @@ import logo from '../../5.assets/demo.jpg'
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import AnnouncementIcon from '@mui/icons-material/Announcement';
 import {
-    CloseOutlined,
+    CloseOutlined, Logout,
     SentimentSatisfiedOutlined,
     ThumbDownOutlined,
     ThumbUpOutlined
@@ -90,6 +90,9 @@ export function MaterialCard({commentOnclick,updateMaterial,setProgress,setMater
             }
         }
     }
+    const leaveFromMaterial=(e)=>{
+
+    }
     return (
         <>
             <div className={'material-card-outer'}>
@@ -99,11 +102,15 @@ export function MaterialCard({commentOnclick,updateMaterial,setProgress,setMater
                     </div>
                     <div className={'material-card-heading-right'}>
                         <div className={'material-card-heading-right-info'}>
-                            {material.creator === activeUser._id ? 'Owner' : 'Shared'}
+                            {materialObj && materialObj.role}
                         </div>
                         <div  className={'material-card-heading-right-options'}>
                             {/*<MoreVertIcon/>*/}
-                            <DeleteIcon onClick={deleteMaterial}/>
+                            {activeUser && material && activeUser._id===material.creator?
+                                <DeleteIcon onClick={deleteMaterial}/>
+                                :
+                                <Logout onClick={leaveFromMaterial}/>
+                            }
                             {/*<div ref={expandOptionsRef} className={'material-card-heading-right-options-expand'}>*/}
                             {/*    <div onClick={(e) => optionClicked('download', e)}>Download</div>*/}
                             {/*    <div onClick={(e) => optionClicked('delete', e)}>Delete</div>*/}
@@ -129,9 +136,11 @@ export function MaterialCard({commentOnclick,updateMaterial,setProgress,setMater
                             <span>{material.users.length}</span>
                         </div>
                     </div>
-                    <div className={'material-card-options-left'} onClick={(e)=>shareOnClick(e,material)}>
-                        <ReplyOutlinedIcon style={{transform: "scaleX(-1)"}}/>
-                    </div>
+                    {materialObj && materialObj.rights && materialObj.rights.share &&
+                        <div className={'material-card-options-left'} onClick={(e)=>shareOnClick(e,material)}>
+                            <ReplyOutlinedIcon style={{transform: "scaleX(-1)"}}/>
+                        </div>
+                    }
                 </div>
             </div>
         </>

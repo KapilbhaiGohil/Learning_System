@@ -39,7 +39,7 @@
     }
     .home-materials{
         max-height: 69vh;
-        overflow-y: scroll;
+        overflow-y: auto;
         position: relative;
         padding: 1rem 0 0 1rem;
         display: flex;
@@ -47,11 +47,8 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-        &::-webkit-scrollbar{
-            display: none;
-        }
+        scrollbar-width: thin;
+        scrollbar-color: $navback $borderColor;
         .home-materials-nomaterials{
             img{
 
@@ -432,9 +429,9 @@
         .comment-screen-msg{
             height: 100%;
             padding: 0 2rem;
-            overflow-y: scroll;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: $navback $borderColor;
             .comment-screen-nomsg{
                 display: flex;
                 justify-content: center;
@@ -442,9 +439,6 @@
                     margin-left: 0.6rem;
                 }
             }
-        }
-        .comment-screen-msg::-webkit-scrollbar {
-            display: none;
         }
         .comment-screen-input{
             display: flex;

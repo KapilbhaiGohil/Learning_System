@@ -30,6 +30,7 @@ export default function Material(){
     const [checked,setChecked] = useState(false);
     const [isFileScreen,setIsFileScreen] = useState({isFile:false,file:''});
     const [action,setAction] = useState({downloading:false,deleting:false});
+    const [rights,setRights] = useState();
     const navigate = useNavigate();
     const {id} = useParams();
     const {activeUser} = useContext(Context);
@@ -195,22 +196,52 @@ export default function Material(){
                             <div className={'material-screen-heading-name'}>
                                 <span>Name</span>
                             </div>
-                            {!isFileScreen.isFile && files.total>0 && <div className={'material-screen-heading-options'}>
-                                {noSelected > 0 &&
-                                    <>
-                                        {activeUser._id === material.creator && (action.deleting ? <TextButtonWithCircularProgress text={'Deleting...'}/>:
-                                            <TextButtonWithIcon text={'Delete'} disabled={action.downloading}  onClick={deleteFilesEvent} Icon={DeleteIcon}/>)
-                                        }
-                                        {noSelected > 1 &&
-                                            <input placeholder={'Enter name of zip file'} id={'zipFileName'}
-                                                style={{marginRight: "0.5rem"}}/>}
-                                        {action.downloading ?  <TextButtonWithCircularProgress  text={'Downloading...'}/> : <TextButtonWithIcon disabled={action.deleting} text={'Download'} onClick={downloadFilesEvent}
-                                                       Icon={DownloadIcon}/>}
-                                    </>
-                                }
-                                <Checkbox checked={checked} onChange={onSelection} size={'medium'} color={'primary'}
-                                          sx={{color: $borderColor, '&.Mui-checked': {color: $lightBlue,},}}/>
-                            </div>}
+                            {!isFileScreen.isFile && files.total > 0 && (
+                                <div className={'material-screen-heading-options'}>
+                                    {noSelected > 0 && (
+                                        <>
+                                            {material.rights.delete && (action.deleting ? (
+                                                <TextButtonWithCircularProgress text={'Deleting...'} />
+                                            ) : (
+                                                <TextButtonWithIcon
+                                                    text={'Delete'}
+                                                    disabled={action.downloading}
+                                                    onClick={deleteFilesEvent}
+                                                    Icon={DeleteIcon}
+                                                />
+                                            ))}
+                                            {material.rights.download && (
+                                                <>
+                                                    {noSelected > 1 && (
+                                                        <input
+                                                            placeholder={'Enter name of zip file'}
+                                                            id={'zipFileName'}
+                                                            style={{ marginRight: "0.5rem" }}
+                                                        />
+                                                    )}
+                                                    {action.downloading ? (
+                                                        <TextButtonWithCircularProgress text={'Downloading...'} />
+                                                    ) : (
+                                                        <TextButtonWithIcon
+                                                            disabled={action.deleting}
+                                                            text={'Download'}
+                                                            onClick={downloadFilesEvent}
+                                                            Icon={DownloadIcon}
+                                                        />
+                                                    )}
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                    <Checkbox
+                                        checked={checked}
+                                        onChange={onSelection}
+                                        size={'medium'}
+                                        color={'primary'}
+                                        sx={{ color: $borderColor, '&.Mui-checked': { color: $lightBlue } }}
+                                    />
+                                </div>
+                            )}
                         </div>
                         {pathArray.length >= 1 && pathArray[pathArray.length-1].type==='folder' && <FolderInfo folder={{name:'. .',type:'folder'}} setPathArray={setPathArray}/>}
                         {!isFileScreen.isFile && files.folders.map((folder,i)=><FolderInfo setFiles={setFiles} setNoSelected={setNoSelected} key={i} folder={folder} setPathArray={setPathArray}/>)}

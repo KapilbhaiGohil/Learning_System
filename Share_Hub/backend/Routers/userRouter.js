@@ -1,7 +1,10 @@
 import express from 'express'
 import {getUser} from "../middleware/midllewares.js";
-import {getDownloadUrlPath, getDownloadUrlPathUsingManulMaking} from "../Utils/fileFunctions.js";
-import User from '../Models/User.js'
+import {
+    generateAndUploadProfilePic,
+    getDownloadUrlPath,
+    getDownloadUrlPathUsingManulMaking
+} from "../Utils/fileFunctions.js";
 import {Material} from "../Models/Material.js";
 import fetch from 'node-fetch';
 import config from '../config.js'
@@ -9,12 +12,17 @@ const userRouter = express.Router();
 const authDomain = config.authDomain;
 userRouter.use(express.json())
 userRouter.post('/getUser',getUser,async(req,res)=>{
+    let {activeUser} = req.body;
     try{
-        let {activeUser} = req.body;
         activeUser.profilePic = await getDownloadUrlPath(activeUser._id+'/profilePic.png');
         return res.status(200).json(activeUser);
     }catch (e) {
         console.log(e);
+        if(e.code==='storage/object-not-found'){
+            const info = await generateAndUploadProfilePic(activeUser);
+            activeUser.profilePic = await getDownloadUrlPathUsingManulMaking(activeUser._id+'/profilePic.png');
+            if(!info.status==='failed')return res.status(200).json(activeUser);
+        }
         return res.status(500).send({msg:"Internal server error."})
     }
 })

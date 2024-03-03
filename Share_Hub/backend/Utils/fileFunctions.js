@@ -124,3 +124,24 @@ async function checkFileExistense(filePath){
         return {ok:false,e:true};
     }
 }
+
+export async function generateAndUploadProfilePic(user){
+    try{
+        let imageBuff ;
+        const res = await fetch(`https://ui-avatars.com/api/?rounded=true&name=${user.name} &background=random&size=128&font-size=0.5`,{
+            method:'GET',
+        });
+        if(res.ok){
+            imageBuff = await res.arrayBuffer();
+        }else{
+            imageBuff = fs.readFileSync('../uploads/defaultPic.png');
+        }
+        let cloudPath = user._id + '/profilePic.png';
+        const storageRef = ref(storage,cloudPath);
+        const uploadTask = await uploadBytesResumable(storageRef,imageBuff,{contentType:"image/jpeg"})
+        return {status:'successfull'};
+    }catch (e){
+        console.log(e);
+        return {status:'failed',error:e};
+    }
+}

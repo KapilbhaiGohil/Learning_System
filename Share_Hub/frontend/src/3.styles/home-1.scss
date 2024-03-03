@@ -86,12 +86,9 @@
             height: 14rem;
             border-radius: 0.3rem;
             margin-top: 1rem;
-            overflow-y: scroll;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            &::-webkit-scrollbar{
-              display: none;
-            }
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: $navback $borderColor;
             .share-input-peoples-first{
               display: flex;
               position: sticky;
@@ -200,12 +197,9 @@
         margin-top: 0.3rem;
         border-radius: 0.3rem;
         max-height: 13rem;
-        overflow-y: scroll;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-        &::-webkit-scrollbar{
-          display: none;
-        }
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: $navback $borderColor;
       }
       .input-people{
         width: fit-content;
@@ -231,7 +225,7 @@
         }
         span{
           margin-left: 0.7rem;
-          overflow-x: scroll;
+          overflow-x: auto;
           -ms-overflow-style: none;
           scrollbar-width: none;
           &::-webkit-scrollbar{

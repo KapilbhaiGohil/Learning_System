@@ -15,6 +15,8 @@ import otpGenerator from "otp-generator";
 import AdmZip from 'adm-zip'
 import Path from 'path'
 import {NotificationCollection} from "../Models/Material.js";
+import {CheckForAccess} from "./functions.js";
+import {populate} from "dotenv";
 const MaterialRouter = express.Router()
 MaterialRouter.use(express.json())
 MaterialRouter.use(bodyParser.json())
@@ -118,10 +120,14 @@ MaterialRouter.post('/addMaterial',getUser,async(req,res)=>{
 MaterialRouter.post('/get',getUser,async(req,res)=>{
     try{
         const {activeUser} = req.body;
-        const user = await User.findById(activeUser._id);
+        const user = await User.findById(activeUser._id).populate('materials.material').lean();
         if(!user || user.materials.length===0)return res.status(200).send({msg:"No material found for this user."});
-        const fullUser = await user.populate('materials.material');
-        return res.status(200).json(fullUser.materials);
+        const materialsWithAccess = await Promise.all(user.materials.map(async (obj)=>{
+            const info = await CheckForAccess(obj.material,activeUser);
+            obj.rights = info.access;
+            return obj;
+        }))
+        return res.status(200).json(materialsWithAccess);
     }catch (e){
         console.log(e);
         return res.status(500).send({msg:"Internal server error"})
@@ -137,7 +143,9 @@ MaterialRouter.post('/getMaterialById',getUser,async(req,res)=>{
             'materials.material': materialId
         });
         if(!user)return res.status(400).send({msg:"This material does not belongs to you try with another one"});
-        const material = await Material.findOne({_id:materialId});
+        const material = await Material.findOne({_id:materialId}).lean();
+        const info = await CheckForAccess(material,activeUser);
+        material.rights = info.access;
         return res.status(200).json(material);
     }catch (e){
         console.log(e);
@@ -147,8 +155,12 @@ MaterialRouter.post('/getMaterialById',getUser,async(req,res)=>{
 
 MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=>{
     try{
-        const {activeUser,initialPath,manualPath} = req.body;
-        let cloudPath = activeUser._id+'/'+initialPath+'/';
+        const {activeUser,initialPath,manualPath,materialId} = req.body;
+        const material = await Material.findById(materialId);
+        if(!material)return res.status(400).send({msg:"provide the proper material."})
+        const info = await CheckForAccess(material,activeUser,'upload');
+        if(!info.ok)return res.status(403).send({msg:"You don't have right to create folder."});
+        let cloudPath = material.creator._id+'/'+initialPath+'/';
         if(manualPath)cloudPath+=manualPath+'/';
         await uploadFile(req.file,cloudPath);
         // await new Promise(resolve => setTimeout(resolve, 15000));
@@ -165,9 +177,13 @@ MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=
 
 MaterialRouter.post('/createFolder',getUser,async(req,res)=>{
     try{
-        const{activeUser,folderName,path,material} = req.body;
+        let{activeUser,folderName,path,material} = req.body;
         if(!material || !folderName)return res.status(400).send({msg:"All field are mandatory"});
-        const cloudPath = `${activeUser._id}/${material._id}/${path}/${folderName}`
+        material = await Material.findById(material._id);
+        if(!material)return res.status(400).send({msg:"Invalid data given to the server."})
+        const info = await CheckForAccess(material,activeUser,'upload');
+        if(!info.ok)return res.status(403).send({msg:"You don't have right to create folder."});
+        const cloudPath = `${material.creator._id}/${material._id}/${path}/${folderName}`;
         const result = await createFolder(cloudPath);
         if(result.ok)return res.status(200).send({msg:"Folder created successfully."});
         return res.status(401).json(result);
@@ -178,11 +194,15 @@ MaterialRouter.post('/createFolder',getUser,async(req,res)=>{
 })
 MaterialRouter.post('/download',getUser,async(req,res)=>{
     try{
-        const {activeUser,path,files,folders,materialId,fullDownload} = req.body;
+        const {activeUser,path,files,folders,materialId} = req.body;
         const material = await Material.findById(materialId);
         if(!material)return res.status(400).send({msg:"Pls provide the correct material id"});
+
         let check = material.users.filter((u)=>u._id.toString()===activeUser._id.toString());
-        if(check < 0 )return res.status(400).send({msg:"You don't have access to the material"});
+        if(!material.creator._id.toString()===activeUser._id.toString() && check.length !== 1 )return res.status(400).send({msg:"You don't have access to the material"});
+
+        const info = await CheckForAccess(material,activeUser,'download');
+        if(!info.ok)return res.status(403).send({msg:"You don't have right to donwload files."});
         let initialPath = `${material.creator._id}/${material._id}/${path}`;
         let finalFiles = [];
         for (let i = 0; i < files.length; i++) {
@@ -222,8 +242,11 @@ MaterialRouter.post('/deleteFile',getUser,async(req,res)=>{
         const user = await User.findById(activeUser._id);
         const material = await Material.findById(materialId);
         if(!material)return res.status(400).send({msg:"You have provided the wrong material id."});
-        if(!user || user._id.toString()!==material.creator._id.toString())return res.status(400).send({msg:"You don't have right to delete other's material."})
-        const cloudPath = `${user._id}/${material._id}/${path}`
+
+        const info = await CheckForAccess(material,activeUser,'delete');
+        if(!info.ok)return res.status(403).send({msg:"You don't have right to delete files."});
+
+        const cloudPath = `${material.creator._id}/${material._id}/${path}`
         if(type==='folder'){
             const failed = await deleteFolder(cloudPath+`/${fileName}`);
             if(failed.length===0){
@@ -248,12 +271,14 @@ MaterialRouter.post('/deleteFile',getUser,async(req,res)=>{
 
 MaterialRouter.post('/getFilesList',getUser,async(req,res)=>{
     try{
-          const {activeUser,path,materialId} = req.body;
-          const material = await Material.findById(materialId);
-          let cloudPath = material.creator.toString()+"/"+path+"/";
-          const {files,folders} = await listFilesAndDirs(cloudPath);
-          let normalPath = path.slice(25,path.length);
-          return res.status(200).json({files,prefix:normalPath,folders});
+        const {activeUser,path,materialId} = req.body;
+        const material = await Material.findById(materialId);
+        let check = material.users.filter((u)=>u._id.toString()===activeUser._id.toString());
+        if(!material.creator._id.toString()===activeUser._id.toString() && check.length !==1 )return res.status(400).send({msg:"You don't have access to the material"});
+        let cloudPath = material.creator.toString()+"/"+path+"/";
+        const {files,folders} = await listFilesAndDirs(cloudPath);
+        let normalPath = path.slice(25,path.length);
+        return res.status(200).json({files,prefix:normalPath,folders});
     }catch (e) {
         console.log(e);
         return res.status(500).send({msg:e.toString()})
@@ -278,8 +303,13 @@ MaterialRouter.post('/deleteMaterial',getUser,async(req,res)=>{
             }
             await NotificationCollection.deleteMany({category:'Invitation','fields.material':material._id})
             await Material.findByIdAndDelete(material._id);
-            const fullUser = await User.findById(activeUser._id).populate('materials.material');
-            return res.status(200).json(fullUser.materials);
+            const fullUser = await User.findById(activeUser._id).populate('materials.material').lean();
+            const materialsWithAccess = await Promise.all(fullUser.materials.map(async (obj)=>{
+                const info = await CheckForAccess(obj.material,activeUser);
+                obj.rights = info.access;
+                return obj;
+            }))
+            return res.status(200).json(materialsWithAccess);
         }else{
             return res.status(500).json(failed);
         }
@@ -293,6 +323,8 @@ MaterialRouter.post('/addComment',getUser,async(req,res)=>{
         const {materialId,activeUser,msg}=req.body;
         const material = await Material.findById(materialId);
         if(!material)return res.status(401).send({msg:"Invalid comment request for non existant material ."});
+        let check = material.users.filter((u)=>u._id.toString()===activeUser._id.toString());
+        if(!material.creator._id.toString()===activeUser._id.toString() && check.length !== 1)return res.status(400).send({msg:"You don't have access to the material"});
         const newComment = await new Comment({comment:msg,by:activeUser._id});
         await newComment.save();
         material.comments.push(newComment._id);
@@ -308,9 +340,11 @@ MaterialRouter.post('/addComment',getUser,async(req,res)=>{
 })
 MaterialRouter.post('/getComments',getUser,async(req,res)=>{
     try{
-        const{materialId} = req.body;
+        const{materialId,activeUser} = req.body;
         const material = await Material.findById(materialId);
         if(!material)return res.status(400).send({msg:"Invalid material id."})
+        let check = material.users.filter((u)=>u._id.toString()===activeUser._id.toString());
+        if(!material.creator._id.toString()===activeUser._id.toString() && check.length !== 1)return res.status(400).send({msg:"You don't have access to the material"});
         const cids = material.comments;
         let comments = await Comment.find({_id:{$in:cids}}).populate('by').lean();
         for (let i = 0; i < comments.length; i++) {
@@ -328,6 +362,10 @@ MaterialRouter.post('/sendInvitation',getUser,async(req,res)=>{
         if(!peoples || !materialId)return res.status(400).send({msg:"User selection required to which you are sharing material."})
         const material = await Material.findById(materialId);
         if(!material)return res.status(400).send({msg:"invalid request for seding the invitation."});
+
+        const info = await CheckForAccess(material,activeUser,'share');
+        if(!info.ok)return res.status(403).send({msg:"You don't have right to share material."});
+
         const newNotifications = peoples.map(async(p)=>{
             let exist = await User.findById(p._id);
             if(!exist){
@@ -335,7 +373,7 @@ MaterialRouter.post('/sendInvitation',getUser,async(req,res)=>{
                 await user.save();
             }
             let pending = await NotificationCollection.findOneAndUpdate(
-                { by: activeUser._id, to: p._id, category: 'Invitation' },
+                { by: activeUser._id, to: p._id, category: 'Invitation',fields:{material:material._id}},
                 { $set: { fields: {access: p.access ,material:material._id}}},
                 { upsert: true, returnDocument: 'after' }
             );
@@ -401,7 +439,7 @@ MaterialRouter.post('/dislikeComment',getUser,async(req,res)=>{
         console.log(e);
         return res.status(500).send({msg:e.message});
     }
-})
+});
 export {MaterialRouter};
 
 

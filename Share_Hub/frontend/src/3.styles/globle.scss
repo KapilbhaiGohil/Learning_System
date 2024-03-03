@@ -216,7 +216,9 @@ nav{
     cursor: default;
     font-size: 0.9rem;
     transition: all 100ms ease-in-out;
-    border-bottom: 1px solid $borderColor;
+    &:not(:last-child){
+        border-bottom: 1px solid $borderColor;
+    }
     .icon-and-msg{
         display: flex;
         align-items: center;

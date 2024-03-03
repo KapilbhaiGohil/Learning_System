@@ -43,7 +43,7 @@ export function Navbar(){
         const {res,data} = await sendResposeForInvitationReq(joined,nid)
         if(res.ok){
             setRefresh(prev=>!prev);
-            setNotification({...notification,show: false})
+            setNotification({...notification,show: false,notifications: []})
         }else{
             window.alert(data.msg);
         }

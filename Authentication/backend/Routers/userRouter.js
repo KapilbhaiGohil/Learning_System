@@ -26,7 +26,6 @@ userRouter.post('/getUserByCookie',async(req,res)=>{
 })
 userRouter.post('/searchUserByEmailPrefix',async(req,res)=>{
     try{
-        console.log('helo world')
         let {activeUser,searchEmail,userIds} = req.body;
         if(!activeUser)return res.status(400).send({msg:"This endpoint is not open for all request."});
         const users = await User.find({ email: { $regex: new RegExp(`^${searchEmail}`, 'i') },_id:{$nin:userIds} })

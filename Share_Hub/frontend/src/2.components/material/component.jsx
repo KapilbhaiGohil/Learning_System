@@ -257,7 +257,7 @@ export function Path({material,pathArray,setPathArray}){
                     </ol>
                 </div>
                 <div className={'path-right'}>
-                    {activeUser._id === material.creator &&
+                    {material && material.rights && material.rights.upload &&
                         <div onClick={addFileClick} className={'path-add-file'}>
                             <button>Add file</button>
                             <AddOutlined/>
@@ -304,6 +304,7 @@ export function CreateFolder({addFolderClick,pathArray,material,setPathArray}){
         setTimeout(()=>{ ele.style.top = "0";},10);
     }, []);
     const createFolder=async (e)=>{
+        setError({field: '',msg: ''})
         setAction({creating: true})
         const path = getPathAsString(pathArray,1);
         const {res,data} = await createFolderReq(path,material,folderName);
@@ -350,6 +351,7 @@ async function uploadFilesHelper(material,pathArray,setProgress,files,setUpload,
         filesData.append(`inputFile`,files[i]);
         filesData.append('initialPath',initialPath);
         filesData.append('token',token);
+        filesData.append('materialId',material._id);
         if(files[i].manualPath)filesData.append('manualPath',files[i].manualPath);
         setUpload({state: true,curr: `${(files[i].manualPath || '')}${files[i].name}`,uploadOver: 'start'});
         const {res,data} = await uploadFile(filesData);
