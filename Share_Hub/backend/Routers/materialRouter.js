@@ -2,7 +2,7 @@ import express from "express";
 import {mongoose} from "../Database/conn.js";
 import User from "../Models/User.js"
 import {Material,Comment} from "../Models/Material.js";
-import {getUser, upload,} from "../middleware/midllewares.js";
+import {getUser, GetUserFromAuthReq, upload,} from "../middleware/midllewares.js";
 import {
     createFolder,
     deleteFile, deleteFolder, getDownloadUrlPathUsingManulMaking, getFilesFromFolder,
@@ -40,9 +40,14 @@ MaterialRouter.post('/create',getUser,async(req,res)=>{
         const result = await createFolder(`${user._id}/${material._id}`);
         user.materials.push({material:material._id,role:'Owner'});
         await user.save();
-        const fullUser = await user.populate('materials.material');
+        const fullUser = await User.findById(user._id).populate('materials.material').lean();
+        const materialsWithAccess = await Promise.all(fullUser.materials.map(async (obj)=>{
+            const info = await CheckForAccess(obj.material,activeUser);
+            obj.rights = info.access;
+            return obj;
+        }))
         await session.commitTransaction();
-        return res.status(200).json(fullUser.materials);
+        return res.status(200).json(materialsWithAccess);
     }catch (e) {
         await session.abortTransaction();
         console.log(e);
@@ -105,9 +110,14 @@ MaterialRouter.post('/addMaterial',getUser,async(req,res)=>{
         material.users.push(user._id);
         await user.save();
         await material.save();
+        const fullUser = await User.findById(activeUser._id).populate('materials.material').lean();
+        const materialsWithAccess = await Promise.all(fullUser.materials.map(async (obj)=>{
+            const info = await CheckForAccess(obj.material,activeUser);
+            obj.rights = info.access;
+            return obj;
+        }));
         await session.commitTransaction();
-        const fullUser = await user.populate('materials.material')
-        return res.status(200).json(fullUser.materials);
+        return res.status(200).json(materialsWithAccess);
     }catch (e) {
         await session.abortTransaction();
         console.log(e);
@@ -358,22 +368,26 @@ MaterialRouter.post('/getComments',getUser,async(req,res)=>{
 })
 MaterialRouter.post('/sendInvitation',getUser,async(req,res)=>{
     try{
-        const {activeUser,peoples,materialId} = req.body;
+        const {activeUser,peoples,materialId,token} = req.body;
         if(!peoples || !materialId)return res.status(400).send({msg:"User selection required to which you are sharing material."})
         const material = await Material.findById(materialId);
         if(!material)return res.status(400).send({msg:"invalid request for seding the invitation."});
-
-        const info = await CheckForAccess(material,activeUser,'share');
-        if(!info.ok)return res.status(403).send({msg:"You don't have right to share material."});
-
+        if(activeUser._id.toString() !== material.creator.toString()){
+            return res.status(403).send({msg:"Only owner of the material can send invitation for joining material."})
+        }
         const newNotifications = peoples.map(async(p)=>{
             let exist = await User.findById(p._id);
             if(!exist){
-                let user = await new User({_id:p._id,email:p.email,name:p.name})
-                await user.save();
+                const userFromAuth = await GetUserFromAuthReq(token);
+                if(userFromAuth!==null){
+                    let user = await new User({_id:userFromAuth._id,email:userFromAuth.email,name:userFromAuth.name})
+                    await user.save();
+                    exist = user;
+                }
             }
+            if(!exist)return res.status(400).send({msg:"Invalid data for the person"});
             let pending = await NotificationCollection.findOneAndUpdate(
-                { by: activeUser._id, to: p._id, category: 'Invitation',fields:{material:material._id}},
+                { by: activeUser._id, to: exist._id, category: 'Invitation','fields.material':material._id},
                 { $set: { fields: {access: p.access ,material:material._id}}},
                 { upsert: true, returnDocument: 'after' }
             );
@@ -401,8 +415,6 @@ MaterialRouter.post('/responseForInvitation',getUser,async(req,res)=>{
         const notification = await NotificationCollection.findById(notificationId).populate({path:'fields.material',select:'code'});
         if(!notification)return res.status(400).send({msg:"Something wrong happend with the request."})
         if(activeUser._id.toString()!==notification.to.toString())return res.status(400).send({msg:"Receiver has share the material to someone else"});
-        //redirect to addmaterial with role and materialcode
-
         if(joined){
             let material = await Material.findById(notification.fields.material._id);
             let user = await User.findById(activeUser._id);
@@ -421,6 +433,24 @@ MaterialRouter.post('/responseForInvitation',getUser,async(req,res)=>{
         return res.status(500).send({msg:e.message,e})
     }
 })
+MaterialRouter.post('/leaveMaterial',getUser,async(req,res)=>{
+    try{
+        const{activeUser,materialId} = req.body;
+        const material = await Material.findById(materialId);
+        if(material.creator.toString()===activeUser._id.toString())return res.status(400).send({msg:"You are owner of material.you can't leave."})
+        const result = await Material.findByIdAndUpdate(material._id,{$pull:{users:activeUser._id}},{new:true});
+        const result2 = await User.findByIdAndUpdate(activeUser._id,{$pull:{materials:{material:materialId}}},{new:true})
+        if(!result || !result2){
+            return res.status(400).send({msg:"Given material no more exist in you material list."});
+        }else{
+            return res.status(200).send({msg:"Successfully removed material from your list."});
+        }
+    }catch (e){
+        console.log(e);
+        return res.status(500).send({msg:e.message});
+    }
+})
+
 MaterialRouter.post('/likeComment',getUser,async(req,res)=>{
     try{
         const{activeUser,commentId} = req.body;

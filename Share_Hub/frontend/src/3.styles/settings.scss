@@ -1,0 +1,90 @@
+@import "globle";
+.settings-outer{
+  color: $fontColor;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  width: 70%;
+  border: 1px solid $borderColor;
+  border-radius: 0.3rem;
+  background: $borderColor3;
+  box-shadow: $boxShadow;
+  margin: 2rem auto auto;
+  min-height: 70vh;
+  >div{
+
+  }
+  .settings-left{
+    border-right: 1px solid $borderColor;
+    width: 20%;
+    ul{
+      padding: 1rem;
+      li{
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        border-radius: 0.3rem;
+        text-align: center;
+        transition: all 0.1s ease-in-out;
+        &:hover{
+          background-color: $borderColor;
+        }
+      }
+    }
+  }
+  .settings-right{
+    width: 80%;
+  }
+}
+
+//access-Right style
+.access-right{
+  .access-options{
+    border-bottom: 1px solid $borderColor;
+    ul{
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+      transition: all 0.1s ease-in-out;
+      //padding: 0.4rem;
+      li{
+        padding: 0.5rem 1.2rem;
+        cursor: pointer;
+        border-right: 1px solid $borderColor;
+        &:hover{
+          background: $borderColor;
+        }
+      }
+    }
+  }
+  .access-details{
+    padding: 2rem;
+    ul{
+      li{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        border-bottom: 1px solid $borderColor;
+        padding-bottom: 1rem;
+        >div>p:first-child{
+          color: $blueColor;
+          font-size: 1.1rem;
+          display: flex;
+          align-items: center;
+          svg{
+            margin-right: 0.7rem;
+          }
+        }
+        p{
+          font-size: 0.8rem;
+          margin-top: 0.3rem;
+        }
+      }
+      li:not(:first-child){
+        margin-top: 1rem;
+      }
+    }
+    >div{
+      margin-top: 2rem;
+    }
+  }
+}

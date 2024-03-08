@@ -19,7 +19,6 @@ export const getUser = async (req,res,next)=>{
             req.body.activeUser = await authRes.json();
         }else{
             const data = await authRes.json();
-            console.log(data);
             return res.status(401).send({msg:data.msg,field:data.field})
         }
     }catch (e) {
@@ -28,7 +27,20 @@ export const getUser = async (req,res,next)=>{
     }
     next();
 }
-
+export async function GetUserFromAuthReq(token){
+    const authRes = await fetch(authDomain+'/user/getUserByCookie',{
+        method:"POST",
+        headers:{
+            'Content-Type':'application/json'
+        },
+        body: JSON.stringify({token})
+    });
+    if(authRes.ok){
+        return await authRes.json();
+    }else{
+        return null;
+    }
+}
 const storage = multer.diskStorage({
     destination:function (req,file,cb){
         cb(null,'./uploads');

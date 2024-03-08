@@ -11,6 +11,9 @@ $pinkColor:#ff69b4;
 $golden:#ffd700;
 $green:#148514;
 $boxShadow: 0 0 35px 0 black;
+$darkBlue:#003578;
+$backIgnore: rgb(0 0 0 / 72%);
+$darkBlack:rgba(0,0,0,.87);
 *{
     font-family: "Segoe UI","Helvetica Neue","Lucida Grande","Roboto","Ebrima","Nirmala UI","Gadugi","Segoe Xbox Symbol","Segoe UI Symbol","Meiryo UI","Khmer UI","Tunga","Lao UI","Raavi","Iskoola Pota","Latha","Leelawadee","Microsoft YaHei UI","Microsoft JhengHei UI","Malgun Gothic","Estrangelo Edessa","Microsoft Himalaya","Microsoft New Tai Lue","Microsoft PhagsPa","Microsoft Tai Le","Microsoft Yi Baiti","Mongolian Baiti","MV Boli","Myanmar Text","Cambria Math",sans-serif;
     margin: 0;
@@ -84,12 +87,55 @@ input[type="file"]{
         cursor: not-allowed;
     }
 }
+//default select style
+.dropdown{
+    width: 7rem;
+    border-radius: 0.3rem;
+    background: inherit;
+    border: 1px solid $borderColor;
+    margin-left: 1rem;
+    position: relative;
+    .dropdown-main{
+        padding: 0.3rem 0.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        svg{
+            transition: all 0.2s ease-in-out;
+        }
+    }
+    .dropdown-options{
+        //display: none;
+        border-radius: 0.3rem;
+        border: 1px solid $borderColor;
+        width: 100%;
+        position: absolute;
+        z-index: 2;
+        top: 120%;
+        background: $navback;
+        .dropdown-option{
+            cursor: pointer;
+            padding: 0.3rem 0.8rem;
+            transition: all 0.1s ease-in-out;
+            span{
+                font-size: 0.8rem;
+            }
+            &:hover{
+                background: $borderColor;
+            }
+        }
+        .dropdown-option:not(:last-child){
+            border-bottom: 1px solid $borderColor;
+        }
+    }
+}
 //default button style
 button{
     border-radius: 0.2rem;
     outline: none;
     border: none;
-    background: $blueColor;
+    background: $darkBlue;
     float: right;
     color: $fontColor;
     //letter-spacing: 1px;
@@ -98,7 +144,7 @@ button{
     height: 2rem;
     &:disabled{
         pointer-events: unset;
-        background: $blueColor;
+        background: $darkBlue;
         cursor: not-allowed;
     }
 }
@@ -109,6 +155,9 @@ button{
         background: $borderColor;
         cursor: not-allowed;
     }
+}
+.revert-icon{
+    rotate: 180deg;
 }
 //default input style
 input{
@@ -133,10 +182,12 @@ nav{
     padding: 0.8rem 2rem;
     background: black;
     color: $fontColor;
+    position: relative;
     .nav-div{
         display: inline flex;
         background: inherit;
         .nav-heading{
+            cursor: pointer;
             margin-left: 1rem;
             font-size: 1.3rem;
             background: inherit;
@@ -173,10 +224,17 @@ nav{
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                transition: all 100ms ease-in-out;
+                transition: all 30ms ease-in-out;
                 cursor: pointer;
+                margin-left: 1rem;
+                img{
+                    width: 80%;
+                }
                 &:hover{
                     background: $borderColor;
+                    svg{
+                        fill:$blueColor;
+                    }
                 }
             }
         }
@@ -207,6 +265,83 @@ nav{
         }
     }
 }
+//design for the profileOptions component
+.profile-options{
+    position: absolute;
+    right: 1%;
+    z-index: 2;
+    width: 25%;
+    border-radius: 1.2rem;
+    box-shadow: $boxShadow;
+    .profile-options-outer{
+        position: relative;
+        border-radius: 1.2rem;
+        background:$borderColor3;
+        border: 1px solid $borderColor;
+        color: $fontColor;
+        display: flex;
+        flex-direction: column;
+        .profile-options-details{
+            justify-content: space-between;
+            padding: 1.5rem;
+            display: flex;
+            border-bottom: 1px solid $borderColor;
+            div:first-child{
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+                img{
+                    margin-right: 1rem;
+                    width: 3rem;
+                    height: 3rem;
+                }
+            }
+        }
+        .profile-options-desc{
+            display: flex;
+            //border-bottom: 1px solid $borderColor;
+            >div:first-child{
+                border-right: 1px solid $borderColor;
+            }
+            >div{
+                width: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem;
+                cursor: pointer;
+                >svg{
+                    margin-right: 0.4rem;
+                }
+                transition: all 0.1s ease-in-out;
+                &:hover{
+                    color: $blueColor;
+                    svg{
+                        fill: $blueColor;
+                    }
+                }
+            }
+        }
+        .profile-logout-btn{
+            transition: all 0.1s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.6rem;
+            cursor: pointer;
+            >svg{
+                margin-right: 0.4rem;
+            }
+            &:hover{
+                color: $blueColor;
+                svg{
+                    fill: $blueColor;
+                }
+            }
+        }
+    }
+}
+
 .invitation{
     display: flex;
     flex-direction: column;
@@ -223,8 +358,9 @@ nav{
         display: flex;
         align-items: center;
         svg{
-            fill: $green;
+            fill: $blueColor;
             margin-right: 0.6rem;
+            font-size: 2rem;
         }
     }
     span{
@@ -233,7 +369,7 @@ nav{
     .inviation-buttons{
         margin-top: 0.3rem;
         button:not(.close-btn){
-            background: $green;
+            background: $darkBlue;
         }
         .close-btn{
             background: #282828;

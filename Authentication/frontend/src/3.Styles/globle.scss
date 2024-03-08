@@ -19,3 +19,6 @@ a{
         text-decoration: underline;
     }
 }
+button:disabled{
+    cursor: not-allowed;
+}

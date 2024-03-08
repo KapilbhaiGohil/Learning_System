@@ -4,6 +4,8 @@
     import {ContextProvider} from "./Context";
     import Material from "./1.views/material";
     import "./3.styles/globle.scss"
+    import "./3.styles/Media Query/media.scss"
+    import Settings from "./1.views/settings";
     function App() {
       return (
         <>
@@ -14,6 +16,7 @@
                         <Route path='' element={<Home />}></Route>
                         <Route path='/home' element={<Home/>}></Route>
                         <Route path={'/material/:id'} element={<Material/>}></Route>
+                        <Route path={'/settings'} element={<Settings/>}></Route>
                     </Routes>
                 </Router>
             </ContextProvider>

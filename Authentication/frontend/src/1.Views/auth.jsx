@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import "../3.Styles/auth.scss"
 import logo from "../Assets/finalLogo.png"
+import {LinearProgress} from "@mui/material";
 export default function Auth(){
     return(
         <>

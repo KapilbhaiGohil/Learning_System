@@ -9,6 +9,7 @@ export default function ForgotPassword(){
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
     const [error,setError] = useState({msg:'',field:''});
+    const [action,setAction] = useState({fetching:false});
     const outlet = useOutlet();
     const emailChange = function (e){
         setEmail(e.target.value);
@@ -25,6 +26,7 @@ export default function ForgotPassword(){
     const forgotPassSubmit = async function(e){
         e.preventDefault();
         setError({msg:'',field:''})
+        setAction({fetching: true})
         if(e.target.confirmPass.value !== e.target.password.value){
             setError({msg:'your password and re-entered password don\'t match.',field:'password'})
         }else{
@@ -42,7 +44,9 @@ export default function ForgotPassword(){
                 setError({msg:data.msg,field:data.field})
             }
         }
+        setAction({fetching: false})
     }
+
     return (
         <>
         {!outlet &&<> <div>
@@ -60,10 +64,10 @@ export default function ForgotPassword(){
                 </div>
                 <div className="auth-buttons">
                     <div>
-                        <SimpleButton btnstyle={{background:"rgb(159, 148, 148)"}} type={'button'} onclick={()=>{navigate("../")}} label={"Back"}></SimpleButton>
+                        <SimpleButton disabled={action.fetching} btnstyle={{background:"rgb(159, 148, 148)"}} type={'button'} onclick={()=>{navigate("../")}} label={"Back"}></SimpleButton>
                     </div>
                     <div>
-                        <SimpleButton  type={'submit'} label={"Next"}></SimpleButton>
+                        <SimpleButton isloading={action.fetching} type={'submit'} label={"Next"}></SimpleButton>
                     </div>
                 </div>
             </form></>}

@@ -130,3 +130,19 @@ export const deleteMaterialReq=async (materialId)=>{
         return {res: {ok:false},data: {e,msg:e.message}};
     }
 }
+export const leaveMaterialReq=async (materialId)=>{
+    try{
+        const res = await fetch(url+'/material/leaveMaterial',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({materialId,token})
+        });
+        const data = await res.json();
+        return {res,data};
+    }catch (e) {
+        console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
+    }
+}

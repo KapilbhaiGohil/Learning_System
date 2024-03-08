@@ -466,7 +466,7 @@
       }
       button[disabled]:not(.close-btn){
         pointer-events: unset;
-        background: $blueColor;
+        background: $darkBlue;
         cursor:  not-allowed;
       }
     }

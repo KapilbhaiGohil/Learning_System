@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"
-import { SimpleButton, SimpleInputWithImage } from "./basicComponent"
+import {CustomCircularProgress, SimpleButton, SimpleInputWithImage} from "./basicComponent"
 import uimg from "../../Assets/user.png"
 import pimg from "../../Assets/password.png"
 import { useState } from "react"
@@ -9,8 +9,8 @@ const url = "http://localhost:8000";
 export default function Login(){
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('')
-    const navigate = useNavigate();
     const [error,setError] = useState({msg:'',field:''});
+    const [action,setAction] = useState({fetching:false});
     const handleEmailChange = function (e){
         setEmail(e.target.value);
         if(error.field==='email'){
@@ -26,6 +26,7 @@ export default function Login(){
     const signin = async function (e){
         e.preventDefault();
         setError({msg:'',field:''})
+        setAction({fetching: true})
         const res = await fetch(url+'/auth/signIn',{
             method:"POST",
             headers:{
@@ -43,6 +44,7 @@ export default function Login(){
         }else{
             setError({msg:data.msg,field:data.field})
         }
+        setAction({fetching: false})
     }
     return(
         <>
@@ -62,7 +64,7 @@ export default function Login(){
                     <p><Link to={'forgot-pass'}>Fortgot your password ?</Link></p>
                 </div>
                 <div>
-                    <SimpleButton type={'submit'}  label={"Signin"}></SimpleButton>
+                    <SimpleButton type={'submit'} isloading={action.fetching} label={"Signin"}></SimpleButton>
                 </div>
             </form>
         </>

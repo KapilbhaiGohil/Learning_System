@@ -1,9 +1,7 @@
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CommentOutlinedIcon from '@mui/icons-material/CommentOutlined';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import ReplyOutlinedIcon from '@mui/icons-material/ReplyOutlined';
-import logo from '../../5.assets/demo.jpg'
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import AnnouncementIcon from '@mui/icons-material/Announcement';
 import {
@@ -16,14 +14,14 @@ import {
     commentMaterial,
     createMaterial, deleteMaterialReq,
     getComments,
-    joinMaterialRequest,
+    joinMaterialRequest, leaveMaterialReq,
     likeMaterial,
     removeLikeMaterial
 } from "./fetchRequest";
 import {useContext, useEffect, useRef, useState} from "react";
 import {Context} from "../../Context";
 import {useNavigate} from "react-router-dom";
-import {LinearProgress} from "@mui/material";
+import {LinearProgress, Tooltip} from "@mui/material";
 import {CircularProgress} from "@mui/joy";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -32,6 +30,7 @@ export function MaterialCard({commentOnclick,updateMaterial,setProgress,setMater
     const {activeUser} = useContext(Context);
     const [like, setLike] = useState(false);
     const expandOptionsRef = useRef();
+    const {setRefresh} = useContext(Context)
     const navigate = useNavigate();
     useEffect(() => {
         for (let i = 0; i < material.likes.length; i++) {
@@ -52,7 +51,7 @@ export function MaterialCard({commentOnclick,updateMaterial,setProgress,setMater
             updateMaterial({...materialObj, ['material']: data}, index);
             setLike(!like);
         }else{
-            navigate('/home');
+            setRefresh(r=>!r);
         }
     }
     const materialClick = (e) => {
@@ -90,15 +89,24 @@ export function MaterialCard({commentOnclick,updateMaterial,setProgress,setMater
             }
         }
     }
-    const leaveFromMaterial=(e)=>{
-
+    const leaveFromMaterial=async(e)=>{
+        if(window.confirm("Are you sure to leave the material ?")){
+            const {res,data} = await leaveMaterialReq(material._id);
+            if(res.ok){
+                setRefresh(prev=>!prev)
+            }else{
+                window.alert(data.msg);
+            }
+        }
     }
     return (
         <>
             <div className={'material-card-outer'}>
                 <div className={'material-card-heading'}>
                     <div onClick={materialClick} className={'material-card-heading-name'}>
-                        <span>{material.name.substring(0,40)}{material.name.length>40 && '....'}</span>
+                        <Tooltip arrow title={material.name}>
+                            <span>{material.name.substring(0,40)}{material.name.length>40 && '....'}</span>
+                        </Tooltip>
                     </div>
                     <div className={'material-card-heading-right'}>
                         <div className={'material-card-heading-right-info'}>
@@ -106,10 +114,14 @@ export function MaterialCard({commentOnclick,updateMaterial,setProgress,setMater
                         </div>
                         <div  className={'material-card-heading-right-options'}>
                             {/*<MoreVertIcon/>*/}
-                            {activeUser && material && activeUser._id===material.creator?
-                                <DeleteIcon onClick={deleteMaterial}/>
+                            {activeUser && material && activeUser._id===material.creator ?
+                                <Tooltip arrow title={'Delete'}>
+                                    <DeleteIcon onClick={deleteMaterial}/>
+                                </Tooltip>
                                 :
-                                <Logout onClick={leaveFromMaterial}/>
+                                <Tooltip arrow title={'Leave'}>
+                                    <Logout onClick={leaveFromMaterial}/>
+                                </Tooltip>
                             }
                             {/*<div ref={expandOptionsRef} className={'material-card-heading-right-options-expand'}>*/}
                             {/*    <div onClick={(e) => optionClicked('download', e)}>Download</div>*/}
@@ -123,22 +135,34 @@ export function MaterialCard({commentOnclick,updateMaterial,setProgress,setMater
                 </div>
                 <div className={'material-card-options'}>
                     <div className={'material-card-options-right'}>
-                        <div onClick={(e) => commentOnclick(materialObj, index)}>
-                            <CommentOutlinedIcon/>
-                            <span>{material.comments.length}</span>
-                        </div>
-                        <div onClick={likeFunction}>
-                            {like ? <FavoriteIcon style={{color: "red"}}/> : <FavoriteBorderOutlinedIcon/>}
-                            <span>{material && material.likes && material.likes.length}</span>
-                        </div>
-                        <div>
-                            <GroupsOutlinedIcon/>
-                            <span>{material.users.length}</span>
-                        </div>
+                        <Tooltip arrow title={'Comments'}>
+                            <div onClick={(e) => commentOnclick(materialObj, index)}>
+                                    <CommentOutlinedIcon/>
+                                <span>{material.comments.length}</span>
+                            </div>
+                        </Tooltip>
+                        <Tooltip arrow title={like ? 'Dislike' : 'Like'}>
+                            <div onClick={likeFunction}>
+                                {like ?
+                                        <FavoriteIcon style={{color: "red"}}/>
+                                    :
+                                        <FavoriteBorderOutlinedIcon/>
+                                    }
+                                <span>{material && material.likes && material.likes.length}</span>
+                            </div>
+                        </Tooltip>
+                        <Tooltip arrow title={`${material.users.length} users joined`}>
+                            <div>
+                                <GroupsOutlinedIcon/>
+                                <span>{material.users.length}</span>
+                            </div>
+                        </Tooltip>
                     </div>
                     {materialObj && materialObj.rights && materialObj.rights.share &&
                         <div className={'material-card-options-left'} onClick={(e)=>shareOnClick(e,material)}>
-                            <ReplyOutlinedIcon style={{transform: "scaleX(-1)"}}/>
+                            <Tooltip arrow title={'Share'}>
+                                <ReplyOutlinedIcon style={{transform: "scaleX(-1)"}}/>
+                            </Tooltip>
                         </div>
                     }
                 </div>
@@ -163,7 +187,6 @@ export function CreateMaterialForm({setScreen, setMaterials}) {
     useEffect(() => {
         let ele = document.getElementById('create-material');
         ele.style.transition = "all 0.4s";
-        ele.style.top = "100%";
         setTimeout(() => {
             ele.style.top = "0";
         }, 10);
@@ -183,7 +206,7 @@ export function CreateMaterialForm({setScreen, setMaterials}) {
     }
     return (
         <>
-            <div id={'create-material'} className={'create-material'}>
+            <div id={'create-material'}  className={'create-material'}>
                 <div className={'create-material-outer'}>
                     {action.creating && <LinearProgress
                         sx={{position: "absolute", inset: "0 0 0 0", height: "2px", background: "transparent"}}/>}
@@ -359,6 +382,7 @@ export function Comment({comment}) {
 export function CommentScreen({setScreen, screen, commentOnClick}) {
     const [comments, setComments] = useState([]);
     const [msg, setMsg] = useState('');
+    const {setRefresh} = useContext(Context)
     const last = useRef();
     const navigate = useNavigate();
     useEffect(() => {
@@ -368,7 +392,6 @@ export function CommentScreen({setScreen, screen, commentOnClick}) {
                 setComments(data);
             }
         }
-
         helper();
     }, [screen]);
     const closeScreen = () => {
@@ -385,9 +408,9 @@ export function CommentScreen({setScreen, screen, commentOnClick}) {
         ele.style.transition = "all 0.4s";
         setTimeout(() => {
             ele.style.top = "0";
-            setTimeout(() => {
-                temp.scrollIntoView({behavior: 'smooth'}); // You might want to use 'smooth' behavior for a smooth scroll
-            }, 400);
+            // setTimeout(() => {
+            //     temp.scrollIntoView({behavior: 'smooth'}); // You might want to use 'smooth' behavior for a smooth scroll
+            // }, 400);
         }, 10);
     }, [screen]);
     const msgChange = (e) => {
@@ -401,7 +424,7 @@ export function CommentScreen({setScreen, screen, commentOnClick}) {
             commentOnClick(temp, screen.index);
             setMsg('');
         } else {
-            navigate('/home');
+            setRefresh(prev=>!prev)
         }
     }
     return (
@@ -409,7 +432,7 @@ export function CommentScreen({setScreen, screen, commentOnClick}) {
             <div id={'comment-screen'} className={'comment-screen'}>
                 <div className={'comment-screen-outer'}>
                     <div className={'comment-screen-heading'}>
-                        <div> Computer science</div>
+                        <div>{screen.data.material.name}</div>
                         <div><CloseOutlined onClick={closeScreen}/></div>
                     </div>
                     <div className={'comment-screen-msg'}>

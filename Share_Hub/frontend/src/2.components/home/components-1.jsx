@@ -1,21 +1,22 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import "../../3.styles/home-1.scss"
 import {ArrowDropDown, CloseOutlined} from "@mui/icons-material";
 import {CustomCircularProgress} from "./components";
 import {searchUserByEmail, sendInvitationReq} from "./fetchRequest-1";
 import {$blueColor} from "../globle";
+import {Context} from "../../Context";
 export  function  ShareScreen({setScreen,screen}){
     const [material,setMaterial] = useState({});
     const [action,setAction] = useState({sharing:false});
     const [peoples,setPeoples] = useState([]);
     const [error,setError] = useState({msg:'',field:''});
+    const{activeUser} = useContext(Context)
     useEffect(() => {
         setMaterial(screen.data.material);
     }, [screen.data.material]);
     useEffect(() => {
         let ele = document.getElementById('share-screen');
         ele.style.transition = "all 200ms ease";
-        ele.style.scale = 0;
         setTimeout(() => {
             ele.style.scale = 1;
         }, 10);
@@ -63,40 +64,44 @@ export  function  ShareScreen({setScreen,screen}){
                             </p>
                             <p></p>
                         </div>
-                        <div className={'share-devider'}>
-                            <p>OR</p>
-                        </div>
-                        <div className={'share-people'}>
-                            <div className={'share-input'}>
-                                <div className={'share-input-box'}>
-                                    <ShareCustomInput setError={setError} material={material} peoples={peoples} setPeoples={setPeoples}/>
+                        {activeUser._id === material.creator &&
+                            <>
+                                <div className={'share-devider'}>
+                                    <p>OR</p>
                                 </div>
-                                {error.msg.length>0 && <p className={'error-msg'}>{error.msg}</p>}
-                                <div className={'share-input-peoples'}>
-                                    <div className={'share-input-peoples-first'}>
-                                        <span>User</span>
-                                        <span>Access Level</span>
+                                <div className={'share-people'}>
+                                    <div className={'share-input'}>
+                                        <div className={'share-input-box'}>
+                                            <ShareCustomInput setError={setError} material={material} peoples={peoples} setPeoples={setPeoples}/>
+                                        </div>
+                                        {error.msg.length>0 && <p className={'error-msg'}>{error.msg}</p>}
+                                        <div className={'share-input-peoples'}>
+                                            <div className={'share-input-peoples-first'}>
+                                                <span>User</span>
+                                                <span>Access Level</span>
+                                            </div>
+                                            {peoples.length>0 &&
+                                                peoples.map((p,i)=>
+                                                    <div key={i} className={'share-input-peoples-list hover-class'}>
+                                                        <People user={p} hover={false}/>
+                                                        <span style={{marginRight:'0.4rem'}}>{p.access}</span>
+                                                        <CloseOutlined style={{marginRight:'0.4rem'}} onClick={(e)=>removePeople(i)}/>
+                                                    </div>)
+                                            }
+                                        </div>
                                     </div>
-                                        {peoples.length>0 &&
-                                            peoples.map((p,i)=>
-                                                <div key={i} className={'share-input-peoples-list hover-class'}>
-                                                    <People user={p} hover={false}/>
-                                                    <span style={{marginRight:'0.4rem'}}>{p.access}</span>
-                                                    <CloseOutlined style={{marginRight:'0.4rem'}} onClick={(e)=>removePeople(i)}/>
-                                                </div>)
+                                    <div className={'share-button'}>
+                                        {action.sharing ?
+                                            <button disabled={true}>
+                                                <CustomCircularProgress precentage={70} trackColor={'transparent'} progressColor={'black'}/>
+                                            </button>
+                                            :
+                                            <button disabled={peoples.length===0} onClick={shareMaterialClick}>Share</button>
                                         }
+                                    </div>
                                 </div>
-                            </div>
-                            <div className={'share-button'}>
-                                {action.sharing ?
-                                    <button disabled={true}>
-                                        <CustomCircularProgress precentage={70} trackColor={'transparent'} progressColor={'black'}/>
-                                    </button>
-                                    :
-                                    <button disabled={peoples.length===0} onClick={shareMaterialClick}>Share</button>
-                                }
-                            </div>
-                        </div>
+                            </>
+                        }
                     </div>
                 </div>
             </div>

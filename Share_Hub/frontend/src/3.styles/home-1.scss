@@ -7,7 +7,9 @@
   align-items: center;
   position: absolute;
   inset: 0 0 0 0;
+  scale: 0;
   backdrop-filter: blur(20px);
+  z-index: 1;
   .share-outer{
     position: absolute;
     top: 2rem;
@@ -94,7 +96,7 @@
               position: sticky;
               top: 0;
               justify-content: space-between;
-              background:$green;
+              background:$darkBlue;
               >span{
                 padding: 0.5rem 1rem;
               }
@@ -244,7 +246,7 @@
   }
   .share-add-button{
     button{
-      background: $green;
+      background: $darkBlue;
     }
   }
 }

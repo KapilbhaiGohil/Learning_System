@@ -7,14 +7,14 @@ export const Context = createContext(
         setActiveUser: () => {},
         isLoading:false,
         setIsLoading:()=>{},
-        refresh:[],
+        refresh:false,
         setRefresh:()=>{}
     }
 )
 
 export function ContextProvider({children}){
     const [isLoading,setIsLoading] = useState(false);
-    const [refresh,setRefresh] = useState([]);
+    const [refresh,setRefresh] = useState(false);
     const [activeUser,setActiveUser] = useState({});
 
     useEffect(()=>{
@@ -24,6 +24,7 @@ export function ContextProvider({children}){
             if(res.ok){
                 setActiveUser(data);
             }else{
+                // window.alert('ok');
                 window.location.replace('http://localhost:3001/auth')
             }
         }

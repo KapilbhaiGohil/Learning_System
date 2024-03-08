@@ -10,6 +10,7 @@ export default function Register(){
     const [email,setEmail] = useState('');
     const [error,setError] = useState({msg:'',field:''})
     const [user,setUser] = useState({name:'',password:''});
+    const [action,setAction] = useState({fetching:false});
     const navigate = useNavigate();
     const outlet = useOutlet();
     const emailChange = function(e){
@@ -23,6 +24,7 @@ export default function Register(){
     }
     const register = async function (e){
         e.preventDefault();
+        setAction({fetching: true})
         setError({msg:'',field:''})
         const res = await fetch(url+'/auth/signUp',{
             method:"POST",
@@ -38,6 +40,7 @@ export default function Register(){
             const data = await res.json();
             setError({msg:data.msg,field:data.field})
         }
+        setAction({fetching: false})
     }
     return (
         <>
@@ -56,8 +59,8 @@ export default function Register(){
                     <SimpleInputWithImage img={pimg} required={true} onchange={userChange} name={"password"} type={'password'} placeholder={"Enter password"} />
                 </div>
                 <div className="auth-buttons">
-                    <SimpleButton btnstyle={{background:"rgb(159, 148, 148)"}} type={'button'} onclick={()=>{navigate("../")}} label={"Back"}></SimpleButton>
-                    <SimpleButton type={'submit'} label={"Next"}></SimpleButton>
+                    <SimpleButton btnstyle={{background:"rgb(159, 148, 148)"}} disabled={action.fetching} type={'button'} onclick={()=>{navigate("../")}} label={"Back"}></SimpleButton>
+                    <SimpleButton type={'submit'} isloading={action.fetching} label={"Next"}></SimpleButton>
                 </div>
             </form>
         </>}

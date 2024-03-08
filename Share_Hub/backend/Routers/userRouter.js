@@ -8,17 +8,19 @@ import {
 import {Material} from "../Models/Material.js";
 import fetch from 'node-fetch';
 import config from '../config.js'
+import User from "../Models/User.js";
 const userRouter = express.Router();
 const authDomain = config.authDomain;
 userRouter.use(express.json())
 userRouter.post('/getUser',getUser,async(req,res)=>{
     let {activeUser} = req.body;
     try{
-        activeUser.profilePic = await getDownloadUrlPath(activeUser._id+'/profilePic.png');
+        activeUser.profilePic = await getDownloadUrlPathUsingManulMaking(activeUser._id+'/profilePic.png');
         return res.status(200).json(activeUser);
     }catch (e) {
         console.log(e);
         if(e.code==='storage/object-not-found'){
+            console.log('reuploading image...')
             const info = await generateAndUploadProfilePic(activeUser);
             activeUser.profilePic = await getDownloadUrlPathUsingManulMaking(activeUser._id+'/profilePic.png');
             if(!info.status==='failed')return res.status(200).json(activeUser);
@@ -56,6 +58,33 @@ userRouter.post('/searchUser',getUser,async(req,res)=>{
     }catch (e) {
         console.log(e);
         return res.status(500).send({msg:e.message,e});
+    }
+})
+userRouter.post('/fetchOrSetAccess',getUser,async(req,res)=>{
+    try{
+        const{activeUser,set,accessInfo} = req.body;
+        let user = await User.findById(activeUser._id);
+        if(!user){
+            user = await new User({_id:activeUser._id,email:activeUser.email,name:activeUser.name})
+            await user.save();
+        }
+        if(set){
+            const accessRights = ['share','upload','delete','download'];
+            const levels = ['Editor','Collaborator','Viewer'];
+            for (let i = 0; i < levels.length; i++) {
+                for (let j = 0; j < accessRights.length; j++) {
+                    if(accessInfo[levels[i]]){
+                        user.accessInfo[levels[i]][accessRights[j]] = accessInfo[levels[i]][accessRights[j]];
+                    }
+                }
+            }
+            await user.save();
+        }
+        return res.status(200).json(user.accessInfo);
+    }
+    catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:'Internal server error.',e});
     }
 })
 export {userRouter};
