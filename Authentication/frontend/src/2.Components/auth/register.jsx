@@ -50,13 +50,13 @@ export default function Register(){
             <form onSubmit={register}>
                 {error.msg.length>0 && error.field!=='email'&& <p style={{color:$err,marginTop:"0.5rem",fontSize:"0.8rem"}}>{error.msg}</p>}
                 <div>
-                    <SimpleInputWithImage value={user.name} img={uimg} required={true} onchange={userChange} name={"name"} type="text" placeholder="Full name"  />
+                    <SimpleInputWithImage value={user.name} minLen={5} maxLen={50} img={uimg} required={true} onchange={userChange} name={"name"} type="text" placeholder="Full name"  />
                 </div>
                 <div>
                     <SimpleInputWithImage value={user.email} img={eimg} errmsg={error.field==='email' && error.msg} inputContainerClass={error.field==='email' && 'err-input-container'}  onchange={emailChange} required={true} name={"email"} type={'email'} placeholder={"Enter email"}  />
                 </div>
                 <div>
-                    <SimpleInputWithImage img={pimg} required={true} onchange={userChange} name={"password"} type={'password'} placeholder={"Enter password"} />
+                    <SimpleInputWithImage img={pimg} minLen={10} maxLen={50} required={true} onchange={userChange} name={"password"} type={'password'} placeholder={"Enter password"} />
                 </div>
                 <div className="auth-buttons">
                     <SimpleButton btnstyle={{background:"rgb(159, 148, 148)"}} disabled={action.fetching} type={'button'} onclick={()=>{navigate("../")}} label={"Back"}></SimpleButton>

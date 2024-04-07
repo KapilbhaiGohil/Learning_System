@@ -40,7 +40,9 @@ export default function Login(){
             cookies.set('token',`${data.token}`,{maxAge:300 * 60 * 60 * 1000});
             // navigate("/home");
             //temp solution
-            window.location.replace('http://localhost:3000/home');
+            setTimeout(() => {
+                window.location.replace('http://localhost:3000/home');
+            }, 500);
         }else{
             setError({msg:data.msg,field:data.field})
         }

@@ -4,7 +4,6 @@ import {getStorage,uploadBytesResumable,ref} from 'firebase/storage'
 import fetch from "node-fetch";
 import fs from "fs";
 
-
 initializeApp(firebaseConfig);
 const storage = getStorage();
 

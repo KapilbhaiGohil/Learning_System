@@ -6,7 +6,7 @@ import {
     deleteFiles,
     downloadFilesReq,
     getFilesList,
-    getMaterialById,
+    getMaterialById, getMaterialRightsReq,
     getPathAsString
 } from "../2.components/material/fetchRequest";
 import {useContext, useEffect, useState} from "react";
@@ -19,6 +19,7 @@ import {$blueColor, $borderColor, $lightBlue} from "../2.components/globle";
 import {Context} from "../Context";
 import {CircularProgress} from "@mui/joy";
 import {CustomCircularProgress} from "../2.components/home/components";
+import {setOrGetAccessReq} from "../2.components/settings/fetchRequests";
 
 export default function Material(){
     const [progress,setProgress] = useState(0);
@@ -60,7 +61,7 @@ export default function Material(){
                 let temp = {...allFiles},item = temp;
                 for (let i = 0; i < pathArray.length-1; i++) {
                     for (let j = 0; j < item.folders.length; j++) {
-                        console.log(item,i,j,item.folders[j].name,pathArray)
+                        // console.log(item,i,j,item.folders[j].name,pathArray)
                         if(item.folders[j].name===pathArray[i+1].name){
                             item = item.folders[j];
                             break;
@@ -146,8 +147,20 @@ export default function Material(){
         if(ele)ele.value = '';
         setProgress(prevState => prevState+30)
         if(selectedFiles.length===1 && selectedFolders.length===0){
-            res = await fetch(selectedFiles[0].url);
-            fileName = selectedFiles[0].name;
+            const tempRes = await getMaterialRightsReq(material._id);
+            if(tempRes.res.ok){
+                if(tempRes.data.download){
+                    res = await fetch(selectedFiles[0].url);
+                    fileName = selectedFiles[0].name;
+                }else{
+                    res = {ok:false,manual:true,data:{msg:"you don't have rights to download files."}};
+                    setMaterial({...material,rights:tempRes.data});
+                }
+            }else{
+                console.log(tempRes.data.e);
+                window.alert(tempRes.data.msg);
+                res = {ok:false,manual:true,data:{msg:"you don't have rights to download files."}};
+            }
         }else{
             const response = await downloadFilesReq(path,selectedFiles,selectedFolders,material._id,false);
             res = response.res;
@@ -164,8 +177,14 @@ export default function Material(){
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
         }else{
-            console.log(res);
-            window.alert("Error while downloading files.")
+            let data;
+            if(!res.manual){
+                data = await res.json();
+            }else{
+                data = res.data;
+            }
+            console.log(data.msg);
+            window.alert(`Error while downloading files : ${data.msg}`)
         }
         setProgress(100)
         setAction({...action,['downloading']: false});
@@ -176,10 +195,10 @@ export default function Material(){
                          onLoaderFinished={() => setProgress(0)}/>
             <div className={'material-outer'}>
                 <div className={'material-structure'}>
-                    <div className={'material-structure-search'}>
-                        <SearchIcon/>
-                        <input placeholder={'Go to file....'}/>
-                    </div>
+                    {/*<div className={'material-structure-search'}>*/}
+                    {/*    <SearchIcon/>*/}
+                    {/*    <input placeholder={'Go to file....'}/>*/}
+                    {/*</div>*/}
                     <div className={'material-structure-info'}>
                         {allFiles.folders && <FolderStructure pathArray={pathArray} allFiles={allFiles} setPathArray={setPathArray}
                                           setAllFiles={setAllFiles} setProgress={setProgress} showFile={showFile} folder={{name:material.name}} prefix={''} depth={0}

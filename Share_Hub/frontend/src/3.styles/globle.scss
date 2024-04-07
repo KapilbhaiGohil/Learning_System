@@ -45,6 +45,12 @@ button:disabled{
     color: $err;
     font-size: 0.8rem;
 }
+#addFolderInput{
+    &::after {
+        content: "Add Folder";
+        left: 28px;
+    }
+}
 input[type="file"]{
     width: 7rem;
     color: black;
@@ -76,7 +82,7 @@ input[type="file"]{
         height: 2rem;
         color:transparent;
         @supports (-moz-appearance: none) {
-            color: black;
+            color: $blueColor;
         }
     }
     &:disabled{

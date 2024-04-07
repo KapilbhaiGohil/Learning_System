@@ -17,6 +17,7 @@ import Path from 'path'
 import {NotificationCollection} from "../Models/Material.js";
 import {CheckForAccess} from "./functions.js";
 import {populate} from "dotenv";
+import path from "path";
 const MaterialRouter = express.Router()
 MaterialRouter.use(express.json())
 MaterialRouter.use(bodyParser.json())
@@ -169,7 +170,7 @@ MaterialRouter.post('/upload',upload.single('inputFile'),getUser,async(req,res)=
         const material = await Material.findById(materialId);
         if(!material)return res.status(400).send({msg:"provide the proper material."})
         const info = await CheckForAccess(material,activeUser,'upload');
-        if(!info.ok)return res.status(403).send({msg:"You don't have right to create folder."});
+        if(!info.ok)return res.status(403).send({msg:"You don't have right to upload folder."});
         let cloudPath = material.creator._id+'/'+initialPath+'/';
         if(manualPath)cloudPath+=manualPath+'/';
         await uploadFile(req.file,cloudPath);
@@ -227,7 +228,10 @@ MaterialRouter.post('/download',getUser,async(req,res)=>{
         for(const file of finalFiles){
             const ext = Path.extname(file.name);
             const fileName = file.name.slice(0,-24-ext.length)+ext;
-            const relativePath = file.path.substr(initialPath.length+1,file.path.length);
+            const relativePath = file.path.substring(initialPath.length);
+            // console.log(file.path)
+            // console.log(relativePath)
+            // console.log(fileName);
             const fileData = await fetch(file.downloadUrl).then(res=>res.arrayBuffer());
             if (!zip.getEntry(relativePath + fileName)) {
                 zip.addFile(relativePath + fileName, Buffer.from(fileData));
@@ -241,6 +245,7 @@ MaterialRouter.post('/download',getUser,async(req,res)=>{
             'Content-Disposition': 'attachment; filename="UnknownStudyFiles.zip"',
         });
         return res.status(200).send(zipBuffer);
+        // return res.status(400).send({msg:"Error"});
     }catch (e) {
         console.log(e);
         return res.status(500).send({msg:e.message,e})
@@ -312,6 +317,7 @@ MaterialRouter.post('/deleteMaterial',getUser,async(req,res)=>{
                 await user.save();
             }
             await NotificationCollection.deleteMany({category:'Invitation','fields.material':material._id})
+            await Comment.deleteMany({_id:{$in:material.comments}});
             await Material.findByIdAndDelete(material._id);
             const fullUser = await User.findById(activeUser._id).populate('materials.material').lean();
             const materialsWithAccess = await Promise.all(fullUser.materials.map(async (obj)=>{
@@ -375,23 +381,28 @@ MaterialRouter.post('/sendInvitation',getUser,async(req,res)=>{
         if(activeUser._id.toString() !== material.creator.toString()){
             return res.status(403).send({msg:"Only owner of the material can send invitation for joining material."})
         }
-        const newNotifications = peoples.map(async(p)=>{
+        const newNotifications = await Promise.all(peoples.map(async (p) => {
             let exist = await User.findById(p._id);
-            if(!exist){
-                const userFromAuth = await GetUserFromAuthReq(token);
-                if(userFromAuth!==null){
-                    let user = await new User({_id:userFromAuth._id,email:userFromAuth.email,name:userFromAuth.name})
+            // console.log(p);
+            // console.log(exist);
+            if (!exist) {
+                const userFromAuth = await GetUserFromAuthReq(p._id,activeUser);
+                console.log(userFromAuth)
+                if (userFromAuth !== null) {
+                    let user = await new User({ _id: userFromAuth._id, email: userFromAuth.email, name: userFromAuth.name })
                     await user.save();
                     exist = user;
                 }
+                // console.log(userFromAuth)
             }
-            if(!exist)return res.status(400).send({msg:"Invalid data for the person"});
+            // console.log(exist);
+            if (!exist) return { msg: "Invalid data for the person" };
             let pending = await NotificationCollection.findOneAndUpdate(
                 { by: activeUser._id, to: exist._id, category: 'Invitation','fields.material':material._id},
                 { $set: { fields: {access: p.access ,material:material._id}}},
                 { upsert: true, returnDocument: 'after' }
             );
-        });
+        }));
         return res.status(200).send({msg:`Invitation for joining material sended to ${peoples.length} users.`});
     }catch (e) {
         console.log(e);

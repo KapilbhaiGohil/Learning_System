@@ -2,10 +2,65 @@ import {useEffect, useRef, useState} from "react";
 import {getFileContentAsText} from "./fetchRequest";
 import hljs from 'highlight.js'
 import 'highlight.js/styles/vs2015.css'
+// import 'highlight.js/styles/github-dark.css'
 import LoadingBar from "react-top-loading-bar";
+import {CancelPresentation} from "@mui/icons-material";
 export default function FileViewer({file,setIsFileScreen,pathArray}){
     let ext = file.name.split('.').pop().toLowerCase();
-    let rawFileExt = ['c','cpp','java','txt','c++','js','in','out','scss','json'];
+    let rawFileExt =  [
+        "c",
+        "cpp",
+        "java",
+        "txt",
+        "c++",
+        "js",
+        "in",
+        "out",
+        "scss",
+        "json",
+        "csv",
+        "tsv",
+        "html",
+        "css",
+        "py",
+        "rb",
+        "swift",
+        "go",
+        "ts",
+        "lua",
+        "pl",
+        "sql",
+        "asm",
+        "sh",
+        "bat",
+        "ps1",
+        "xml",
+        "yaml",
+        "ini",
+        "conf",
+        "cfg",
+        "properties",
+        "h",
+        "hpp",
+        "cs",
+        "vb",
+        "jsx",
+        "tsx",
+        "vue",
+        "ejs",
+        "erb",
+        "jade",
+        "pug",
+        "handlebars",
+        "jsp",
+        "asp",
+        "aspx",
+        "cfm",
+        "r",
+        "rs",
+        "scala",
+    ];
+    let imageFiles = ['jpeg','avif','jpg','jpeg','jfif','png','svg','webp'];
     const [progress,setProgress] = useState(0);
 
     useEffect(() => {
@@ -45,14 +100,23 @@ export default function FileViewer({file,setIsFileScreen,pathArray}){
                     <iframe src={file.url} type={'application/pdf'}/>
                 }
                 {
-                    ['jpeg','avif','jpg','jpeg','jfif','png','svg','webp',].includes(ext) &&
-                        <img src={file.url} alt={'error while getting data'}/>
+                    imageFiles.includes(ext) &&
+                        <img src={file.url} style={{maxWidth:"100%"}} alt={'error while getting data'}/>
                 }
                 {
                     rawFileExt.includes(ext) &&
                     <>
                         <pre id={'pretag'}>
                         </pre>
+                    </>
+                }
+                {
+                    !rawFileExt.includes(ext) && !imageFiles.includes(ext) && !['pdf'].includes(ext) &&
+                    <>
+                        <div className={'no-preview'}>
+                            <CancelPresentation />
+                            <p>No preview available</p>
+                        </div>
                     </>
                 }
             </div>

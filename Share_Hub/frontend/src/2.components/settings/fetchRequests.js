@@ -9,6 +9,7 @@ export const setOrGetAccessReq=async (accessInfo,set)=>{
             body:JSON.stringify({set,token,accessInfo})
         });
         const data = await res.json();
+
         return {res,data};
     }catch (e) {
         console.log(e);

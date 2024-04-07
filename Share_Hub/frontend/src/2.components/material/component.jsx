@@ -226,7 +226,11 @@ export function Path({material,pathArray,setPathArray}){
     const [createFolderScreen,setCreateFolderScreen] = useState(false);
     const {activeUser} = useContext(Context);
     const addFileClick=(e)=>{
-        setExpand(!expand);
+        if(pathArray[pathArray.length - 1].type !=='folder' && !expand){
+            window.alert('Open some folder to expand options.');
+        }else{
+            setExpand(!expand);
+        }
     }
     const uploadFileClick=(e)=>{
         setExpand(false);
@@ -346,7 +350,6 @@ async function uploadFilesHelper(material,pathArray,setProgress,files,setUpload,
     const token = new Cookies().get('token');
     setProgress(prev=>prev+10);
     for (let i = 0; i < files.length; i++) {
-        console.log(files[i]);
         const filesData = new FormData();
         filesData.append(`inputFile`,files[i]);
         filesData.append('initialPath',initialPath);
@@ -360,6 +363,7 @@ async function uploadFilesHelper(material,pathArray,setProgress,files,setUpload,
             setFailed(prev=>[...prev,files[i]]);
         }
         setProgress(prevState => prevState+(70/files.length));
+
     }
 }
 export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
@@ -388,7 +392,9 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
         }
         let newFiles = [];
         for (let i = 0; i < e.target.files.length; i++) {
-            newFiles.push(e.target.files[i]);
+            const file = e.target.files[i];
+            file.manualPath = file.webkitRelativePath.substring(0,file.webkitRelativePath.length - file.name.length);
+            newFiles.push(file);
         }
         setFiles([...files,...newFiles]);
     }
@@ -420,7 +426,8 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
         }
     }
     function handleDrop(e) {
-        e.preventDefault()
+        e.preventDefault();
+        e.stopPropagation()
         let items = e.dataTransfer.items;
         for (let i = 0; i < items.length; i++) {
             let item = items[i].webkitGetAsEntry();
@@ -482,7 +489,7 @@ export function UploadScreen({uploadFileClick,pathArray,setPathArray,material}){
                     </div>
                     <div className={'upload-control'}>
                         <div className={'upload-buttons'}>
-                            <button className={'close-btn'} onClick={closeScreen}>Close</button>
+                            <button className={'close-btn'} disabled={upload.state} onClick={closeScreen}>Close</button>
                             <button style={{display:"flex",justifyContent:"center",alignItems:"center"}} onClick={(e)=>uploadFilesClick(e,upload.uploadOver==='completed' && failed.length>0)} disabled={upload.state}>
                                 {upload.state ? <CustomCircularProgress precentage={70} trackColor={'transparent'} progressColor={'black'}/>
                                     : upload.uploadOver==='completed' && failed.length>0 ?
@@ -551,6 +558,7 @@ export function DrageArea({fileInput,handleDragEOL,handleDrop,disabled}){
             <div className={'upload-drag-area'}>
                 <div className={'upload-input'}>
                     <input type={'file'} disabled={disabled} multiple={true} onChange={fileInput}/>
+                    <input id={'addFolderInput'} disabled={disabled} type={'file'} onChange={fileInput} webkitdirectory={""} mozdirectory={""} directory={""} multiple/>
                 </div>
                 <div className={'upload-drag-area-div'} onDragEnter={handleDragEOL}
                      onDragOver={handleDragEOL}

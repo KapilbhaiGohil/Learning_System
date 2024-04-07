@@ -9,6 +9,7 @@ import {Material} from "../Models/Material.js";
 import fetch from 'node-fetch';
 import config from '../config.js'
 import User from "../Models/User.js";
+import {CheckForAccess} from "./functions.js";
 const userRouter = express.Router();
 const authDomain = config.authDomain;
 userRouter.use(express.json())
@@ -58,6 +59,18 @@ userRouter.post('/searchUser',getUser,async(req,res)=>{
     }catch (e) {
         console.log(e);
         return res.status(500).send({msg:e.message,e});
+    }
+})
+userRouter.post('/getRightsForUser',getUser,async(req,res)=>{
+    try{
+        const {activeUser,materialId} = req.body;
+        const material = await Material.findById(materialId);
+        if(!material)return res.status(400).send({msg:"No materail found with provided information."});
+        const info = await CheckForAccess(material,activeUser);
+        return res.status(200).json(info.access);
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:"Internal server error.",e})
     }
 })
 userRouter.post('/fetchOrSetAccess',getUser,async(req,res)=>{

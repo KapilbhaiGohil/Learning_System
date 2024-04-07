@@ -27,20 +27,22 @@ export const getUser = async (req,res,next)=>{
     }
     next();
 }
-export async function GetUserFromAuthReq(token){
-    const authRes = await fetch(authDomain+'/user/getUserByCookie',{
+export async function GetUserFromAuthReq(userId,activeUser){
+    const authRes = await fetch(authDomain+'/user/getUserByUserId',{
         method:"POST",
         headers:{
             'Content-Type':'application/json'
         },
-        body: JSON.stringify({token})
+        body: JSON.stringify({_id:userId,activeUser})
     });
     if(authRes.ok){
         return await authRes.json();
     }else{
+        console.log(await authRes.json());
         return null;
     }
 }
+
 const storage = multer.diskStorage({
     destination:function (req,file,cb){
         cb(null,'./uploads');

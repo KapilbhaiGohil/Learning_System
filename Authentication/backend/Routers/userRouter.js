@@ -37,4 +37,17 @@ userRouter.post('/searchUserByEmailPrefix',async(req,res)=>{
     }
 })
 
+userRouter.post('/getUserByUserId',async(req,res)=>{
+    try{
+        let {_id,activeUser} = req.body;
+        if(!activeUser)return res.status(400).send({msg:"This endpoint is not open for all request."});
+        let active = await User.findById(activeUser._id);
+        if(!active)return res.status(400).send({msg:"This endpoint is not open for all request."})
+        const user = await User.findById(_id);
+        return res.status(200).json(user);
+    }catch (e) {
+        console.log(e);
+        return res.status(500).send({msg:"Internal server error."})
+    }
+})
 export {userRouter};

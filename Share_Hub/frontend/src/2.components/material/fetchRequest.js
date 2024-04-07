@@ -16,7 +16,7 @@ export const getMaterialById=async (materialId)=>{
     }
 }
 export const uploadFile=async (formData)=>{
-    console.log(formData,"at the time of uploading")
+    // console.log(formData,"at the time of uploading")
     try{
         const res = await fetch(url+'/material/upload',{
             method:"POST",
@@ -88,6 +88,22 @@ export async function downloadFilesReq(path,files,folders,materialId,fullDownloa
             body:JSON.stringify({path,token,materialId,files,folders,fullDownload})
         });
         return {res};
+    }catch (e) {
+        console.log(e);
+        return {res: {ok:false},data: {e,msg:e.message}};
+    }
+}
+export async function getMaterialRightsReq(materialId){
+    try{
+        const res = await fetch(url+'/user/getRightsForUser',{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({token,materialId})
+        });
+        const data = await res.json();
+        return {res,data};
     }catch (e) {
         console.log(e);
         return {res: {ok:false},data: {e,msg:e.message}};
