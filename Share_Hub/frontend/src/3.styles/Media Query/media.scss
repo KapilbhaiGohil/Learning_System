@@ -1,3 +1,120 @@
-@media screen and (max-width: 34px) {
+@media(max-width: 1120px){
+  .home-outer{
+    width: 100%;
+  }
+  .settings-outer{
+    width: 85% !important;
+  }
+  .upload .upload-outer{
+    width: 50rem;
+  }
+}
+@media (max-width: 870px) {
+  .home-outer{
+    width: 100%;
+    .home-search .home-search-icons{
+      margin-left: 3px;
+    }
+  }
+  .upload .upload-outer{
+    width: 100%;
+    inset: 0;
+    justify-content: flex-start;
+    .upload-area{
+      flex-wrap: wrap;
+      .upload-info{
+        width: 100%;
+      }
+      .upload-drag-area{
+        width: 100%;
+      }
+    }
+  }
+  .settings-outer{
+    width: 100% !important;
+    margin: auto !important;
+    height: 100vh;
+  }
+  .material-card-outer{
+    width: 100%;
+  }
+  .comment-screen .comment-screen-outer{
+    inset: 0 0 0 0;
+    height: 100%;
+  }
+  .get-material .get-material-outer{
+    width:31rem;
+  }
+  .material-outer {
+    .material-structure{
+      display: none;
+    }
+    .material-screen{
+      width: 100%;
+    }
+  }
+  .profile-options .profile-options-outer{
+    position: absolute !important;
+    right: 0;
+  }
+}
 
+//for the mobile devices
+@media (max-width: 576px){
+  .create-material .create-material-outer{
+    inset: 0 0 0 0;
+    height: 100%;
+    width: 100%;
+    .create-material-body .create-material-name > div{
+      width: 10rem;
+    }
+  }
+  .settings-outer .settings-left ul{
+    padding: 0 !important;
+  }
+  .get-material .get-material-outer{
+    width: 100%;
+    height: 100vh;
+    inset: 0;
+  }
+  .profile-options {
+    width: 100% !important;
+    .profile-options-outer{
+      width: 92% !important;
+    }
+  }
+  .notification-outer{
+    width: 100% !important;
+    inset: 20% 0 0 0;
+    height: 100vh;
+    position: relative !important;
+  }
+
+  .create-folder .create-folder-outer{
+    width: 100%;
+    inset: 0;
+    justify-content: flex-start;
+  }
+
+  .share-custom-outer .share-custom .share-custom-input .share-right-options{
+    left: unset;
+  }
+  .share-custom-outer .share-custom .share-custom-input .share-static{
+    position: relative;
+  }
+  .share-screen .share-outer{
+    inset: 0;
+  }
+  .share-search-outer{
+    width: unset;
+  }
+  .share-custom-outer .share-custom .share-custom-input .input-people{
+    width: 97%;
+    height: 1.7rem;
+  }
+  .invitation .inviation-buttons{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
 }

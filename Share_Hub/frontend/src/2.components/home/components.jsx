@@ -223,7 +223,7 @@ export function CreateMaterialForm({setScreen, setMaterials}) {
                                         <p style={{width:"8rem"}}>{activeUser && activeUser.name && activeUser.name.substring(0,15)}</p>
                                     </div>
                                 </div>
-                                <div style={{fontSize: "1.7rem", marginTop: "1.3rem"}}>/</div>
+                                <div style={{fontSize: "1.7rem", marginTop: "1.3rem",width:"unset"}}>/</div>
                                 <div className={'create-material-input'}>
                                     <p>Material name</p>
                                     <div>

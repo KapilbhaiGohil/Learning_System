@@ -192,6 +192,7 @@ nav{
     .nav-div{
         display: inline flex;
         background: inherit;
+        flex-wrap: wrap;
         .nav-heading{
             cursor: pointer;
             margin-left: 1rem;
@@ -251,7 +252,7 @@ nav{
     padding: 1rem 1rem 1rem 1rem;
     box-shadow: 0 0 35px 0 black;
     border: 1px solid $borderColor;
-    width: 30%;
+    width: 26rem;
     max-height: 30rem;
     overflow-y: auto;
     border-radius: 0.3rem;
@@ -271,6 +272,7 @@ nav{
         }
     }
 }
+
 //design for the profileOptions component
 .profile-options{
     position: absolute;
@@ -280,7 +282,9 @@ nav{
     border-radius: 1.2rem;
     box-shadow: $boxShadow;
     .profile-options-outer{
-        position: relative;
+        width: 25rem;
+        position: absolute;
+        right: 0;
         border-radius: 1.2rem;
         background:$borderColor3;
         border: 1px solid $borderColor;

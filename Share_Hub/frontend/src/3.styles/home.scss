@@ -2,12 +2,13 @@
 
 // style for the topic component
 .home-outer{
-    margin: 1% 15%;
+    margin: auto;
     z-index: 1;
     padding:1rem;
     display: flex;
     flex-direction: column;
     color: $fontColor;
+    width: 67rem;
     .home-search{
         display: flex;
         flex-direction: row;
@@ -227,10 +228,10 @@
     justify-content: center;
     align-items: center;
     .create-material-outer{
+        width: 31rem;
         position: absolute;
         top: 2rem;
         background: black;
-        width: 32%;
         color:$fontColor;
         border:1px solid $borderColor;
         padding: 2rem;
@@ -246,6 +247,7 @@
             display: flex;
             flex-direction: column;
             .create-material-name{
+                //flex-wrap: wrap;
                 display: flex;
                 align-items: center;
                 margin-top: 1rem;
@@ -265,6 +267,7 @@
                 }
                 .create-material-input{
                     margin: 0;
+                    width: 100%;
                     input{
                         font-size: 1rem;
                         background: inherit;
@@ -331,7 +334,7 @@
         position: absolute;
         top:2rem;
         background: black;
-        width: 32%;
+        width: 31rem;
         color: $fontColor;
         border: 1px solid $borderColor;
         padding: 2rem;
@@ -431,9 +434,7 @@
     .comment-screen-outer{
         //width: 90%;
         background: black;
-        position: absolute;
-        inset: 10% 20%;
-        top: 2rem;
+        width: 54rem;
         z-index: 100;
         height: 83vh;
         display: flex;
